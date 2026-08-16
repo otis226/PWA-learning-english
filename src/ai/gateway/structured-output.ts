@@ -18,8 +18,11 @@ import { AppError } from '../../shared/errors'
  * 2. json_object when capability is enabled
  * 3. plain completion + JSON extraction + Zod validate + bounded repair
  *
- * Fallback applies only when a structured-output capability/response_format
- * appears unsupported. Terminal transport/auth errors must not cascade.
+ * Fallback to the next strategy applies ONLY with concrete evidence that the
+ * provider rejects the current structured-output capability / response_format
+ * (typically HTTP 400/422 + message about response_format / json_schema /
+ * json_object / structured outputs). Terminal errors and unrelated provider
+ * failures must not cascade to another strategy.
  *
  * Invalid model output never returns as success domain data.
  */
@@ -39,10 +42,60 @@ const terminalStructuredOutputErrors = new Set<AIErrorCategory>(
   TERMINAL_STRUCTURED_OUTPUT_ERROR_CATEGORIES,
 )
 
+/** HTTP statuses commonly used when a request body field is unsupported. */
+const UNSUPPORTED_STRUCTURED_OUTPUT_STATUSES = new Set([400, 422])
+
+/**
+ * Phrases that indicate the provider rejected structured-output machinery
+ * (response_format / schema modes), not a generic bad request.
+ */
+const UNSUPPORTED_STRUCTURED_OUTPUT_PATTERNS: readonly RegExp[] = [
+  /\bresponse[_\s-]?format\b/i,
+  /\bjson[_\s-]?schema\b/i,
+  /\bjson[_\s-]?object\b/i,
+  /\bstructured[_\s-]?outputs?\b/i,
+  /\bstructured[_\s-]?output\b/i,
+]
+
 export function isTerminalStructuredOutputError(error: unknown): boolean {
   return (
     error instanceof AIRequestError && terminalStructuredOutputErrors.has(error.category)
   )
+}
+
+/**
+ * True only when the error is concrete evidence that the current strategy's
+ * structured-output / response_format capability is unsupported.
+ */
+export function isUnsupportedStructuredOutputError(error: unknown): boolean {
+  if (!(error instanceof AIRequestError)) {
+    return false
+  }
+  if (isTerminalStructuredOutputError(error)) {
+    return false
+  }
+  // Only client validation-style statuses; 404/5xx/etc. are not capability signals.
+  if (error.status === null || !UNSUPPORTED_STRUCTURED_OUTPUT_STATUSES.has(error.status)) {
+    return false
+  }
+  // invalid_response is a successful HTTP parse failure, not unsupported format.
+  if (error.category === 'invalid_response') {
+    return false
+  }
+  if (error.category !== 'provider_error') {
+    return false
+  }
+
+  const haystack = [error.providerMessage, error.message]
+    .filter((part): part is string => typeof part === 'string' && part.length > 0)
+    .join('\n')
+    .toLowerCase()
+
+  if (!haystack) {
+    return false
+  }
+
+  return UNSUPPORTED_STRUCTURED_OUTPUT_PATTERNS.some((pattern) => pattern.test(haystack))
 }
 export type StructuredOutputStrategy = 'json_schema' | 'json_object' | 'extract_repair'
 
@@ -151,17 +204,17 @@ export async function runStructuredOutput<TSchema extends ZodTypeAny>(
       } catch (error) {
         if (error instanceof AIRequestError) {
           lastError = error
-          // Auth/network/timeout/etc. are terminal — do not fake a capability fallback.
-          if (isTerminalStructuredOutputError(error)) {
-            return {
-              ok: false,
-              error: lastError,
-              strategyTried: tried,
-              attempts,
-            }
+          // Only concrete unsupported response_format / structured-output evidence
+          // may try the next strategy. Everything else fails immediately.
+          if (isUnsupportedStructuredOutputError(error)) {
+            break
           }
-          // Non-terminal provider/response errors may mean response_format is unsupported.
-          break
+          return {
+            ok: false,
+            error: lastError,
+            strategyTried: tried,
+            attempts,
+          }
         }
         lastError =
           error instanceof AppError
@@ -169,7 +222,13 @@ export async function runStructuredOutput<TSchema extends ZodTypeAny>(
             : new AppError('structured_output_failed', 'Structured output failed', {
                 cause: error,
               })
-        break
+        // Non-AI errors (including generic Error) are not capability evidence.
+        return {
+          ok: false,
+          error: lastError,
+          strategyTried: tried,
+          attempts,
+        }
       }
     }
   }
