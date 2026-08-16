@@ -80,6 +80,43 @@ describe('OpenAICompatibleChatClient', () => {
     expect(body).not.toHaveProperty('response_format')
   })
 
+  it('complete omits temperature unless the request configures it', async () => {
+    const fetchImpl = vi.fn().mockImplementation(() =>
+      Promise.resolve(
+        jsonResponse({
+          choices: [{ message: { content: 'ok' } }],
+        }),
+      ),
+    )
+    const client = new OpenAICompatibleChatClient({
+      baseUrl: 'https://api.example.com/v1',
+      model: 'compat-model',
+      providerProfileId: 'p1',
+      credentialStore: memoryCredentials(),
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      isOnline: () => true,
+    })
+
+    await client.complete({
+      model: 'compat-model',
+      messages: [{ role: 'user', content: 'json please' }],
+    })
+    const unconfigured = JSON.parse(
+      String((fetchImpl.mock.calls[0] as [string, RequestInit])[1].body),
+    ) as Record<string, unknown>
+    expect(unconfigured).not.toHaveProperty('temperature')
+
+    await client.complete({
+      model: 'compat-model',
+      messages: [{ role: 'user', content: 'json please' }],
+      temperature: 0.4,
+    })
+    const configured = JSON.parse(
+      String((fetchImpl.mock.calls[1] as [string, RequestInit])[1].body),
+    ) as Record<string, unknown>
+    expect(configured.temperature).toBe(0.4)
+  })
+
   it('does not apply a default client timeout when timeoutMs is omitted', async () => {
     vi.useFakeTimers()
     let resolveFetch!: (value: Response) => void

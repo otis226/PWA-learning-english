@@ -1,4 +1,5 @@
 import type { GeneratedExerciseV1 } from '../../ai/schemas/exercises-v1'
+import { normalizeConceptLabel } from '../concepts/concept-identity'
 import { AppError } from '../../shared/errors'
 
 export type ExerciseValidationIssue = {
@@ -18,15 +19,16 @@ export type ExerciseValidationResult = {
  */
 export function validateGeneratedExercises(
   exercises: GeneratedExerciseV1[],
-  options?: { sourceContent?: string },
+  options?: { sourceContent?: string; knownConceptLabels?: string[] },
 ): ExerciseValidationResult {
   const accepted: GeneratedExerciseV1[] = []
   const rejected: ExerciseValidationIssue[] = []
   const seenFingerprints = new Set<string>()
   const source = options?.sourceContent ?? ''
+  const knownConceptLabels = options?.knownConceptLabels
 
   exercises.forEach((exercise, index) => {
-    const issues = validateOne(exercise, source)
+    const issues = validateOne(exercise, source, knownConceptLabels)
     if (issues.length > 0) {
       for (const issue of issues) {
         rejected.push({ index, code: issue.code, message: issue.message })
@@ -53,6 +55,7 @@ export function validateGeneratedExercises(
 function validateOne(
   exercise: GeneratedExerciseV1,
   sourceContent: string,
+  knownConceptLabels?: string[],
 ): Array<{ code: string; message: string }> {
   const issues: Array<{ code: string; message: string }> = []
 
@@ -67,20 +70,31 @@ function validateOne(
     })
   }
 
-  if (exercise.groundedInSource || exercise.type === 'true_false' || looksReading(exercise)) {
-    if (exercise.groundedInSource) {
-      const evidence = exercise.evidenceText?.trim() ?? ''
-      if (!evidence) {
-        issues.push({
-          code: 'missing_evidence',
-          message: 'Source-grounded exercise lacks evidenceText',
-        })
-      } else if (sourceContent && !sourceContainsEvidence(sourceContent, evidence)) {
-        issues.push({
-          code: 'ungrounded_evidence',
-          message: 'evidenceText is not found in the source',
-        })
-      }
+  if (knownConceptLabels) {
+    const known = new Set(knownConceptLabels.map((label) => normalizeConceptLabel(label)))
+    const unresolved = exercise.targetConceptLabels.filter(
+      (label) => !known.has(normalizeConceptLabel(label)),
+    )
+    if (unresolved.length > 0) {
+      issues.push({
+        code: 'unresolved_target_concept',
+        message: `Target concept(s) not in pack: ${unresolved.join(', ')}`,
+      })
+    }
+  }
+
+  if (requiresSourceEvidence(exercise)) {
+    const evidence = exercise.evidenceText?.trim() ?? ''
+    if (!evidence) {
+      issues.push({
+        code: 'missing_evidence',
+        message: 'Source-grounded exercise lacks evidenceText',
+      })
+    } else if (sourceContent && !sourceContainsEvidence(sourceContent, evidence)) {
+      issues.push({
+        code: 'ungrounded_evidence',
+        message: 'evidenceText is not found in the source',
+      })
     }
   }
 
@@ -144,9 +158,14 @@ function validateOne(
   return issues
 }
 
+function requiresSourceEvidence(exercise: GeneratedExerciseV1): boolean {
+  return exercise.groundedInSource === true || looksReading(exercise)
+}
+
 function looksReading(exercise: GeneratedExerciseV1): boolean {
   return (
     exercise.skill.toLowerCase().includes('reading') ||
+    /comprehension/i.test(exercise.skill) ||
     exercise.targetConceptLabels.some((l) => /reading|comprehension/i.test(l))
   )
 }

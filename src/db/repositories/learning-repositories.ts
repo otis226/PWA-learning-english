@@ -126,8 +126,16 @@ export class ExerciseRepository {
   }
 
   async getMany(ids: string[]): Promise<ExerciseRecord[]> {
+    if (ids.length === 0) return []
     const rows = await this.db.exercises.bulkGet(ids)
-    return rows.filter((r): r is ExerciseRecord => Boolean(r))
+    const byId = new Map<string, ExerciseRecord>()
+    for (const row of rows) {
+      if (row) byId.set(row.id, row)
+    }
+    return ids.flatMap((id) => {
+      const row = byId.get(id)
+      return row ? [row] : []
+    })
   }
 
   async listByPack(packId: string): Promise<ExerciseRecord[]> {

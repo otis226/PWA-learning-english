@@ -31,6 +31,7 @@ import {
 import type { AppSettingsRepository } from '../../db/repositories/app-settings-repository'
 import { createId } from '../../shared/ids'
 import { AppError } from '../../shared/errors'
+import { normalizeConceptLabel } from '../concepts/concept-identity'
 import {
   assertHasAcceptedExercises,
   validateGeneratedExercises,
@@ -79,8 +80,10 @@ export class GenerateExercisesService {
           config,
           {
             messages: request.messages,
-            temperature: request.temperature,
             response_format: request.response_format,
+            ...(request.temperature !== undefined
+              ? { temperature: request.temperature }
+              : {}),
           },
           signal,
         ),
@@ -100,7 +103,6 @@ export class GenerateExercisesService {
         }),
         capabilities: config.capabilities,
         maxRepairAttempts: 1,
-        temperature: 0.2,
       },
     )
     if (!planResult.ok) {
@@ -113,8 +115,10 @@ export class GenerateExercisesService {
           config,
           {
             messages: request.messages,
-            temperature: request.temperature,
             response_format: request.response_format,
+            ...(request.temperature !== undefined
+              ? { temperature: request.temperature }
+              : {}),
           },
           signal,
         ),
@@ -139,7 +143,6 @@ export class GenerateExercisesService {
         }),
         capabilities: config.capabilities,
         maxRepairAttempts: 1,
-        temperature: 0.3,
       },
     )
     if (!genResult.ok) {
@@ -148,6 +151,7 @@ export class GenerateExercisesService {
 
     const validated = validateGeneratedExercises(genResult.data.exercises, {
       sourceContent: source.normalizedContent,
+      knownConceptLabels: concepts.map((c) => c.canonicalLabel),
     })
     assertHasAcceptedExercises(validated)
 
@@ -215,9 +219,33 @@ export class GenerateExercisesService {
 function buildLabelIndex(concepts: ConceptRecord[]): Map<string, ConceptRecord> {
   const map = new Map<string, ConceptRecord>()
   for (const concept of concepts) {
-    map.set(concept.canonicalLabel.trim().toLowerCase(), concept)
+    map.set(normalizeConceptLabel(concept.canonicalLabel), concept)
   }
   return map
+}
+
+function resolveTargetConceptIds(
+  labels: string[],
+  labelToConcept: Map<string, ConceptRecord>,
+): string[] {
+  const ids: string[] = []
+  for (const label of labels) {
+    const concept = labelToConcept.get(normalizeConceptLabel(label))
+    if (!concept) {
+      throw new AppError(
+        'unresolved_target_concept',
+        `Generated exercise target concept is not in this pack: ${label}`,
+      )
+    }
+    ids.push(concept.id)
+  }
+  if (ids.length === 0) {
+    throw new AppError(
+      'unresolved_target_concept',
+      'Generated exercise did not resolve any target concept.',
+    )
+  }
+  return ids
 }
 
 function toExerciseRecord(input: {
@@ -228,12 +256,10 @@ function toExerciseRecord(input: {
   provenance: GenerationProvenance
   now: string
 }): ExerciseRecord {
-  const targetConceptIds = input.item.targetConceptLabels
-    .map((label) => input.labelToConcept.get(label.trim().toLowerCase())?.id)
-    .filter((id): id is string => Boolean(id))
-
-  const resolved =
-    targetConceptIds.length > 0 ? targetConceptIds : input.pack.conceptIds.slice(0, 1)
+  const targetConceptIds = resolveTargetConceptIds(
+    input.item.targetConceptLabels,
+    input.labelToConcept,
+  )
 
   return {
     id: createId('ex'),
@@ -241,7 +267,7 @@ function toExerciseRecord(input: {
     sourceId: input.source.id,
     type: input.item.type,
     skill: input.item.skill,
-    targetConceptIds: resolved,
+    targetConceptIds,
     prompt: input.item.prompt,
     payload: input.item.payload,
     explanation: input.item.explanation,

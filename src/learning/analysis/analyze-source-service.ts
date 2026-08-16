@@ -88,8 +88,10 @@ export class AnalyzeSourceService {
           config,
           {
             messages: request.messages,
-            temperature: request.temperature,
             response_format: request.response_format,
+            ...(request.temperature !== undefined
+              ? { temperature: request.temperature }
+              : {}),
           },
           input.signal,
         ),
@@ -105,7 +107,6 @@ export class AnalyzeSourceService {
         }),
         capabilities: config.capabilities,
         maxRepairAttempts: 1,
-        temperature: 0.2,
       },
     )
 

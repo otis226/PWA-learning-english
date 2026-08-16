@@ -30,11 +30,12 @@ describe('RC1 learning loop integration', () => {
   let practice: PracticeService
   let review: ReviewService
   let exportService: ExportService
+  let gateway: MockAIGateway
 
   beforeEach(async () => {
     db = new AppDatabase(`loop-${crypto.randomUUID()}`)
     await db.open()
-    const gateway = new MockAIGateway()
+    gateway = new MockAIGateway()
     const providerSettings = {
       getActiveConfig: vi.fn(async () => mockActiveConfig()),
     } as unknown as ProviderSettingsService
@@ -111,6 +112,16 @@ describe('RC1 learning loop integration', () => {
     const generated = await generate.generateForPack(analyzed.pack.id)
     expect(generated.exercises.length).toBeGreaterThanOrEqual(4)
     expect(new Set(generated.exercises.map((e) => e.type)).size).toBeGreaterThan(1)
+    const although = analyzed.concepts.find((c) =>
+      c.canonicalLabel.toLowerCase().includes('although'),
+    )
+    expect(although).toBeTruthy()
+    expect(generated.exercises.some((e) => e.targetConceptIds.includes(although!.id))).toBe(true)
+    expect(
+      generated.exercises.every((e) => e.targetConceptIds.length > 0 && e.targetConceptIds.every((id) =>
+        analyzed.pack.conceptIds.includes(id),
+      )),
+    ).toBe(true)
 
     const { session, exercises } = await practice.startPracticeSession(analyzed.pack.id)
     expect(exercises.some((e) => e.type === 'multiple_choice')).toBe(true)
@@ -198,5 +209,90 @@ describe('RC1 learning loop integration', () => {
     expect(await db.learningPacks.count()).toBeGreaterThan(0)
     expect(await db.attempts.count()).toBeGreaterThan(0)
     expect(await db.reviewCards.count()).toBeGreaterThan(0)
+  })
+
+  it('new practice after regeneration uses only current pack.exerciseIds', async () => {
+    const analyzed = await analyze.analyze({
+      type: 'pasted_text',
+      content:
+        'Despite the heavy rain, the team continued the match. Although fans left early, players stayed.',
+      learningGoal: 'mixed',
+    })
+
+    const first = await generate.generateForPack(analyzed.pack.id)
+    const historicalIds = first.exercises.map((e) => e.id)
+    expect(historicalIds.length).toBeGreaterThan(0)
+
+    const second = await generate.generateForPack(analyzed.pack.id)
+    const currentIds = second.pack.exerciseIds
+    expect(currentIds).toEqual(second.exercises.map((e) => e.id))
+    expect(currentIds.some((id) => historicalIds.includes(id))).toBe(false)
+
+    const storedHistorical = await db.exercises.bulkGet(historicalIds)
+    expect(storedHistorical.every(Boolean)).toBe(true)
+
+    const { session, exercises } = await practice.startPracticeSession(analyzed.pack.id)
+    expect(session.exerciseIds).toEqual(currentIds)
+    expect(exercises.map((e) => e.id)).toEqual(currentIds)
+    expect(exercises.some((e) => historicalIds.includes(e.id))).toBe(false)
+    expect(await db.exercises.where('packId').equals(analyzed.pack.id).count()).toBeGreaterThan(
+      currentIds.length,
+    )
+  })
+
+  it('rejects unresolved target concepts so mastery/FSRS never update a fallback concept', async () => {
+    const analyzed = await analyze.analyze({
+      type: 'pasted_text',
+      content:
+        'Despite the heavy rain, the team continued the match. Although fans left early, players stayed.',
+      learningGoal: 'mixed',
+    })
+    const firstConceptId = analyzed.pack.conceptIds[0]
+    expect(firstConceptId).toBeTruthy()
+
+    gateway.complete = async (_config, request) => {
+      const blob = request.messages.map((m) => m.content).join('\n').toLowerCase()
+      if (blob.includes('exercise-plan.v1') || blob.includes('plan english practice')) {
+        return {
+          content: JSON.stringify({
+            schemaVersion: 'exercise-plan.v1',
+            items: [
+              {
+                conceptLabel: 'unrelated fallback bait',
+                exerciseType: 'flashcard',
+                skill: 'grammar',
+              },
+            ],
+          }),
+          raw: {},
+        }
+      }
+      return {
+        content: JSON.stringify({
+          schemaVersion: 'exercises.v1',
+          exercises: [
+            {
+              type: 'flashcard',
+              skill: 'grammar',
+              targetConceptLabels: ['unrelated fallback bait'],
+              prompt: 'unrelated',
+              payload: { type: 'flashcard', front: 'x', back: 'y' },
+              explanation: 'Would have updated the first pack concept if fallback existed.',
+            },
+          ],
+        }),
+        raw: {},
+      }
+    }
+
+    await expect(generate.generateForPack(analyzed.pack.id)).rejects.toMatchObject({
+      code: 'no_valid_exercises',
+    })
+
+    const pack = await db.learningPacks.get(analyzed.pack.id)
+    expect(pack?.exerciseIds).toEqual([])
+    expect(await db.exercises.count()).toBe(0)
+    expect(await db.conceptMastery.get(firstConceptId!)).toBeUndefined()
+    expect(await db.reviewCards.where('conceptId').equals(firstConceptId!).count()).toBe(0)
   })
 })

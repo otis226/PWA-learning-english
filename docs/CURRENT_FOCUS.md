@@ -1,50 +1,41 @@
 # Current Focus
 
-Last updated: 2026-08-16
+Last updated: 2026-08-17
 
 ## Active release target
 
-**RC1 — Durable personal-use MVP (M1 → M5 continuously)**
+**RC1.1 — Stabilization of the durable personal-use MVP**
 
 Roadmap source: `docs/ROADMAP.md`.
 
-Current internal milestone: **RC1 complete — awaiting holistic user review**.
+Current internal milestone: **RC1.1 correctness/compatibility fixes**. Do **not** start M6.
 
 ## Execution policy for this release run
 
-This branch is intentionally a long-running release branch.
+Stay inside the four RC1.1 findings. Do not add PDF/image ingestion, Google Drive, UX redesign, or unrelated polish.
 
-Stop only when the **RC1 final acceptance** below passes, or a genuine blocker prevents safe progress.
-
-Do not open one PR per milestone. One overall RC1 PR is prepared after the end-to-end release target is ready.
+Stop only when the RC1.1 exit gate below passes, or a genuine blocker prevents safe progress.
 
 ## Current repository state
 
-RC1 implementation is on `feature/mvp-release-candidate`.
+RC1 (M1–M5) is on `main`. This run is `fix/rc1-stabilization`.
 
-Shipped in this run:
+RC1.1 locks:
 
-- **M1:** Source intake (paste text / vocabulary / custom topic), learning goals, Dexie v2 sources/packs/concepts/occurrences, validated analysis schema + structured-output pipeline, pack preview with concept removal, failure UX mapping.
-- **M2:** Exercise plan → generate → validate → persist pipeline; flashcard, MCQ, cloze, true/false; practice session UX; deterministic scoring; StudySession + immutable Attempt.
-- **M3:** Conservative concept identity keys; mistake signals; mastery/weak projection; short-answer deterministic-first + optional AI grade; lazy learner-specific explanations.
-- **M4:** `ts-fsrs` ReviewCard/ReviewLog; rating UX locked in D-023; due queue + review session; offline stored exercises; dashboard due/recent/weak/activity.
-- **M5:** Export schema v2 full non-secret round-trip + replace restore; v1→v2 migration tests; storage/backup reminder UX; CSP/deploy docs; Playwright critical E2E; golden quality fixtures.
+- Pack detail and **new** practice sessions load `LearningPack.exerciseIds` only. Historical exercises/attempts stay in IndexedDB.
+- Generated exercises must resolve `targetConceptLabel`s explicitly. No silent fallback to the first pack concept.
+- Reading/source-comprehension evidence is required by domain semantics, not only when the model sets `groundedInSource=true`.
+- Structured-output requests do not inject `temperature` unless a caller configures it (extends D-022).
 
-## RC1 final acceptance — checklist
+## RC1.1 exit gate
 
-1. [x] Configure arbitrary OpenAI-compatible provider/model
-2. [x] Paste content/topic, choose goal, validated saved pack
-3. [x] Generate + complete mixed practice with explanations
-4. [x] Attempts persist across reload
-5. [x] Wrong answers → concept weakness/mistake state
-6. [x] FSRS due review later
-7. [x] Offline stored review works (stored exercises; no AI required)
-8. [x] Dashboard: due/recent/weak/activity
-9. [x] Export all non-secret state, no credential
-10. [x] Clear → restore → state survives
-11. [x] Playwright critical E2E main loop (`pnpm test:e2e`)
-12. [x] `pnpm verify` passes
-13. [x] Docs accurate (`ROADMAP`, `DECISIONS`, this file)
+1. [x] Regenerated pack practice uses only current `exerciseIds`
+2. [x] Unresolved target concepts are rejected; mastery/FSRS cannot update a fallback concept
+3. [x] Reading exercises without the model grounding flag still require valid evidence
+4. [x] Structured-output request body has no `temperature` unless configured
+5. [x] `pnpm verify`
+6. [x] `pnpm test:e2e`
+7. [x] Docs accurate (`DECISIONS` D-026, this file)
 
 ## Verification
 
@@ -55,8 +46,13 @@ pnpm test:e2e   # after: pnpm exec playwright install chromium
 
 ## Current next action
 
-Holistic product/UX review on the RC1 PR. No further milestone work unless review finds blockers.
+Open/land the RC1.1 PR to `main`. Do not start M6.
 
 ## Blockers
 
 None.
+
+## Later / discovered
+
+- M6 rich local-file ingestion (not this run)
+- M7 Google Drive backup
