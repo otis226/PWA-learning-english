@@ -32,8 +32,13 @@ test.describe('RC1 critical learning loop', () => {
     await page.getByRole('button', { name: /generate exercises/i }).click()
     await expect(page.getByText(/generated/i)).toBeVisible({ timeout: 20_000 })
 
+    await page.getByRole('button', { name: /regenerate exercises/i }).click()
+    await expect(page.getByText(/generated/i)).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByRole('heading', { name: /exercises \(2\)/i })).toBeVisible()
+
     await page.getByRole('button', { name: /start practice/i }).click()
     await expect(page.getByRole('heading', { name: /practice/i })).toBeVisible()
+    await expect(page.getByText('1 / 2')).toBeVisible()
 
     const showAnswer = page.getByRole('button', { name: /show answer/i })
     if (await showAnswer.isVisible().catch(() => false)) {

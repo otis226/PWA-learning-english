@@ -87,4 +87,76 @@ describe('validateGeneratedExercises', () => {
     expect(result.rejected.some((r) => r.code === 'ungrounded_evidence')).toBe(true)
     expect(result.rejected.some((r) => r.code === 'duplicate_exercise')).toBe(true)
   })
+
+  it('rejects unresolved target concepts instead of accepting them', () => {
+    const result = validateGeneratedExercises(
+      [
+        ex({
+          type: 'flashcard',
+          targetConceptLabels: ['not-a-pack-concept'],
+          payload: { type: 'flashcard', front: 'f', back: 'b' },
+        }),
+      ],
+      { sourceContent: source, knownConceptLabels: ['despite'] },
+    )
+    expect(result.accepted).toHaveLength(0)
+    expect(result.rejected.some((r) => r.code === 'unresolved_target_concept')).toBe(true)
+  })
+
+  it('requires source evidence for reading exercises even when groundedInSource is omitted', () => {
+    const missing = validateGeneratedExercises(
+      [
+        ex({
+          type: 'true_false',
+          skill: 'reading',
+          payload: {
+            type: 'true_false',
+            statement: 'The team continued the match.',
+            correct: true,
+          },
+        }),
+      ],
+      { sourceContent: source },
+    )
+    expect(missing.accepted).toHaveLength(0)
+    expect(missing.rejected.some((r) => r.code === 'missing_evidence')).toBe(true)
+
+    const ungrounded = validateGeneratedExercises(
+      [
+        ex({
+          type: 'multiple_choice',
+          skill: 'reading comprehension',
+          groundedInSource: false,
+          evidenceText: 'This fact is not in the source xyz',
+          payload: {
+            type: 'multiple_choice',
+            question: 'What happened?',
+            options: ['They continued', 'They stopped'],
+            correctIndex: 0,
+          },
+        }),
+      ],
+      { sourceContent: source },
+    )
+    expect(ungrounded.accepted).toHaveLength(0)
+    expect(ungrounded.rejected.some((r) => r.code === 'ungrounded_evidence')).toBe(true)
+
+    const grounded = validateGeneratedExercises(
+      [
+        ex({
+          type: 'true_false',
+          skill: 'reading',
+          evidenceText: 'Despite the heavy rain, the team continued',
+          payload: {
+            type: 'true_false',
+            statement: 'The team continued the match.',
+            correct: true,
+          },
+        }),
+      ],
+      { sourceContent: source },
+    )
+    expect(grounded.accepted).toHaveLength(1)
+    expect(grounded.rejected).toEqual([])
+  })
 })

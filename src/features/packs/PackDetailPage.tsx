@@ -33,7 +33,7 @@ export function PackDetailPage() {
     setSource(detail.source)
     setConcepts(detail.concepts)
     setOccurrences(detail.occurrences)
-    const ex = await exercises.listByPack(packId)
+    const ex = await exercises.getMany(detail.pack.exerciseIds)
     setExerciseList(ex)
   }, [analyzeSource, exercises, packId])
 

@@ -80,7 +80,8 @@ export class PracticeService {
     if (!pack) {
       throw new AppError('pack_not_found', 'Learning pack not found.')
     }
-    const exercises = await this.exercises.listByPack(packId)
+    // pack.exerciseIds is the current generation; historical rows stay in IDB.
+    const exercises = await this.exercises.getMany(pack.exerciseIds)
     if (exercises.length === 0) {
       throw new AppError('no_exercises', 'Generate exercises before practicing.')
     }
@@ -331,8 +332,10 @@ export class PracticeService {
           config,
           {
             messages: request.messages,
-            temperature: request.temperature,
             response_format: request.response_format,
+            ...(request.temperature !== undefined
+              ? { temperature: request.temperature }
+              : {}),
           },
           input.signal,
         ),
@@ -359,7 +362,6 @@ export class PracticeService {
         ],
         capabilities: config.capabilities,
         maxRepairAttempts: 0,
-        temperature: 0,
       },
     )
 
@@ -391,8 +393,10 @@ export class PracticeService {
           config,
           {
             messages: request.messages,
-            temperature: request.temperature,
             response_format: request.response_format,
+            ...(request.temperature !== undefined
+              ? { temperature: request.temperature }
+              : {}),
           },
           input.signal,
         ),
@@ -420,7 +424,6 @@ export class PracticeService {
         ],
         capabilities: config.capabilities,
         maxRepairAttempts: 0,
-        temperature: 0.2,
       },
     )
     if (!result.ok) return null

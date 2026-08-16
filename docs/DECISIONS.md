@@ -287,3 +287,15 @@ Import supports:
 3. legacy v1 envelopes (settings/profiles only) by filling empty learning arrays.
 
 Credentials are never imported or exported.
+
+## D-026 — RC1.1 current-set, explicit concepts, domain evidence, no auto temperature
+
+**Status:** Accepted  
+**Date:** 2026-08-17
+
+RC1.1 correctness/compatibility locks:
+
+1. **`LearningPack.exerciseIds` is the current exercise set.** Pack detail and new practice sessions load those IDs. Historical exercises/attempts remain stored for history integrity and must not join a new session merely because they share `packId`.
+2. **No silent first-concept fallback.** Every generated exercise must resolve each `targetConceptLabel` to a pack concept. Unresolved/invalid mappings are rejected so mastery/FSRS cannot update an unrelated concept.
+3. **Reading evidence is domain-semantic.** Reading/source-comprehension exercises require valid source evidence even when the model omits or sets `groundedInSource=false`. The model flag is not the enforcement mechanism.
+4. **No automatic `temperature`.** Structured-output / Chat Completions requests must not inject optional generation parameters such as `temperature` unless a caller intentionally configures them. Extends D-022 beyond Test Connection.

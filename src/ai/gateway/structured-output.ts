@@ -169,7 +169,9 @@ export async function runStructuredOutput<TSchema extends ZodTypeAny>(
         const completion = await complete({
           model: '',
           messages,
-          temperature: request.temperature ?? 0,
+          ...(request.temperature !== undefined
+            ? { temperature: request.temperature }
+            : {}),
           response_format: responseFormatForStrategy(strategy, request),
         })
 

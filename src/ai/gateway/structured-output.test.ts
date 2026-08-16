@@ -57,6 +57,39 @@ describe('structured-output contract', () => {
     expect(extractJsonCandidate('```json\n{"a":1}\n```')).toEqual({ a: 1 })
   })
 
+  it('does not send temperature unless the caller configured it', async () => {
+    const complete = vi.fn().mockResolvedValue({
+      content: JSON.stringify({ title: 'ok', score: 3 }),
+      raw: {},
+    })
+    await runStructuredOutput(complete, {
+      schema: sampleSchema,
+      schemaName: 'Sample',
+      jsonSchema: {},
+      messages: [{ role: 'user', content: 'go' }],
+      capabilities: baseCapabilities,
+    })
+    expect(complete).toHaveBeenCalledOnce()
+    const body = complete.mock.calls[0]?.[0] as { temperature?: number }
+    expect(body).not.toHaveProperty('temperature')
+  })
+
+  it('forwards temperature only when explicitly configured', async () => {
+    const complete = vi.fn().mockResolvedValue({
+      content: JSON.stringify({ title: 'ok', score: 3 }),
+      raw: {},
+    })
+    await runStructuredOutput(complete, {
+      schema: sampleSchema,
+      schemaName: 'Sample',
+      jsonSchema: {},
+      messages: [{ role: 'user', content: 'go' }],
+      capabilities: baseCapabilities,
+      temperature: 0.2,
+    })
+    expect(complete.mock.calls[0]?.[0]).toMatchObject({ temperature: 0.2 })
+  })
+
   it('returns validated data on success', async () => {
     const complete = vi.fn().mockResolvedValue({
       content: JSON.stringify({ title: 'ok', score: 3 }),
