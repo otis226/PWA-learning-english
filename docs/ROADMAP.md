@@ -174,7 +174,7 @@ Do not start M1 before this gate passes.
 
 # M1 — Source intake and AI analysis vertical slice
 
-**Status:** `[~] ACTIVE`
+**Status:** `[x] COMPLETE` (exit gate passed 2026-08-16)
 
 ## Objective
 
@@ -192,31 +192,31 @@ No full practice engine yet.
 
 Support exactly these initial input types:
 
-- [ ] pasted text/article;
-- [ ] pasted vocabulary/list;
-- [ ] custom learning topic/instruction.
+- [x] pasted text/article;
+- [x] pasted vocabulary/list;
+- [x] custom learning topic/instruction.
 
 Do **not** make arbitrary URL fetch a dependency of M1.
 
 ### M1.2 Source model
 
-- [ ] Source entity/repository.
-- [ ] content normalization.
-- [ ] content hash.
-- [ ] source type/title/created timestamp.
-- [ ] safe limits for extremely large pasted input.
+- [x] Source entity/repository.
+- [x] content normalization.
+- [x] content hash.
+- [x] source type/title/created timestamp.
+- [x] safe limits for extremely large pasted input.
 
 ### M1.3 Learning objective UX
 
 Support goals:
 
-- [ ] vocabulary;
-- [ ] grammar;
-- [ ] prepositions;
-- [ ] collocations/expressions;
-- [ ] reading comprehension;
-- [ ] mixed/everything important;
-- [ ] custom goal.
+- [x] vocabulary;
+- [x] grammar;
+- [x] prepositions;
+- [x] collocations/expressions;
+- [x] reading comprehension;
+- [x] mixed/everything important;
+- [x] custom goal.
 
 The user chooses **what to learn**. Exercise format remains engine-controlled.
 
@@ -231,28 +231,28 @@ Define a versioned schema containing only data needed now, e.g.:
 - evidence/context for source-derived items;
 - suggested practice progression.
 
-- [ ] Provider response is runtime validated.
-- [ ] Structured-output fallback works through mocked provider variants.
-- [ ] Invalid JSON/schema mismatch produces recoverable UX.
-- [ ] Generation records provider profile id, model, schema/prompt version, source hash, timestamp.
+- [x] Provider response is runtime validated.
+- [x] Structured-output fallback works through mocked provider variants.
+- [x] Invalid JSON/schema mismatch produces recoverable UX.
+- [x] Generation records provider profile id, model, schema/prompt version, source hash, timestamp.
 
 ### M1.5 Learning Pack draft
 
-- [ ] LearningPack entity/repository.
-- [ ] Concept and ConceptOccurrence minimal models.
-- [ ] Pack preview page showing what AI found.
-- [ ] User can remove unwanted generated objectives/concepts before exercise generation.
+- [x] LearningPack entity/repository.
+- [x] Concept and ConceptOccurrence minimal models.
+- [x] Pack preview page showing what AI found.
+- [x] User can remove unwanted generated objectives/concepts before exercise generation.
 
 ### M1.6 Failure states
 
 Explicitly cover:
 
-- [ ] offline;
-- [ ] CORS/network/provider unreachable;
-- [ ] bad API key;
-- [ ] unknown/bad model;
-- [ ] rate limit/provider error;
-- [ ] invalid AI structured output.
+- [x] offline;
+- [x] CORS/network/provider unreachable;
+- [x] bad API key;
+- [x] unknown/bad model;
+- [x] rate limit/provider error;
+- [x] invalid AI structured output.
 
 ## M1 exit gate
 
@@ -268,7 +268,7 @@ Explicitly cover:
 
 # M2 — Exercise generation and core practice
 
-**Status:** `[ ]`
+**Status:** `[x] COMPLETE` (exit gate passed 2026-08-16)
 
 ## Objective
 
@@ -284,10 +284,10 @@ source -> analysis -> exercises -> answer -> feedback -> attempt saved
 
 Initial types:
 
-- [ ] flashcard;
-- [ ] multiple choice;
-- [ ] cloze;
-- [ ] true/false.
+- [x] flashcard;
+- [x] multiple choice;
+- [x] cloze;
+- [x] true/false.
 
 Short answer is intentionally deferred until grading/mistake semantics are stronger.
 
@@ -316,37 +316,37 @@ Source
  -> Persist
 ```
 
-- [ ] Avoid one giant prompt returning an uncontrolled full product state.
-- [ ] Validate answer/options consistency.
-- [ ] Detect duplicate/near-duplicate exercises within a pack where practical.
-- [ ] Reject unsupported source-grounded comprehension questions lacking evidence.
+- [x] Avoid one giant prompt returning an uncontrolled full product state.
+- [x] Validate answer/options consistency.
+- [x] Detect duplicate/near-duplicate exercises within a pack where practical.
+- [x] Reject unsupported source-grounded comprehension questions lacking evidence.
 
 ### M2.3 Practice session
 
-- [ ] one-question-at-a-time UI;
-- [ ] progress indicator;
-- [ ] submit/flip behavior by type;
-- [ ] explanation after answer;
-- [ ] keyboard usability for desktop;
-- [ ] responsive usability for phone-sized screens.
+- [x] one-question-at-a-time UI;
+- [x] progress indicator;
+- [x] submit/flip behavior by type;
+- [x] explanation after answer;
+- [x] keyboard usability for desktop;
+- [x] responsive usability for phone-sized screens.
 
 ### M2.4 Deterministic scoring
 
 For closed-form exercise types, correctness should be application logic whenever possible.
 
-- [ ] MCQ deterministic;
-- [ ] true/false deterministic;
-- [ ] cloze normalization rules documented/tested;
-- [ ] flashcard self-evaluation semantics explicit.
+- [x] MCQ deterministic;
+- [x] true/false deterministic;
+- [x] cloze normalization rules documented/tested;
+- [x] flashcard self-evaluation semantics explicit.
 
 Do not call AI merely to score an answer that can be scored locally.
 
 ### M2.5 Attempt history
 
-- [ ] immutable Attempt records;
-- [ ] StudySession record;
-- [ ] pack completion summary;
-- [ ] attempts survive reload.
+- [x] immutable Attempt records;
+- [x] StudySession record;
+- [x] pack completion summary;
+- [x] attempts survive reload.
 
 ## M2 exit gate
 
@@ -358,7 +358,7 @@ Tests must cover each initial exercise type and malformed generated exercise dat
 
 # M3 — Mistake memory, concept reuse, and open-answer intelligence
 
-**Status:** `[ ]`
+**Status:** `[x] COMPLETE` (exit gate passed 2026-08-16)
 
 ## Objective
 
@@ -368,36 +368,36 @@ Turn isolated quiz attempts into a learner model.
 
 ### M3.1 Concept identity
 
-- [ ] concept normalization/deduplication strategy;
-- [ ] same concept across different sources can link to one canonical Concept where confidence is high;
-- [ ] preserve ConceptOccurrence per source/context;
-- [ ] avoid unsafe over-merging of distinct meanings/usages.
+- [x] concept normalization/deduplication strategy;
+- [x] same concept across different sources can link to one canonical Concept where confidence is high;
+- [x] preserve ConceptOccurrence per source/context;
+- [x] avoid unsafe over-merging of distinct meanings/usages.
 
 ### M3.2 Mistake model
 
-- [ ] capture wrong-answer pattern/signals;
-- [ ] distinguish exercise failure from a reusable misconception where possible;
-- [ ] examples: `despite + clause`, `since vs for`, `in/on/at` confusion.
+- [x] capture wrong-answer pattern/signals;
+- [x] distinguish exercise failure from a reusable misconception where possible;
+- [x] examples: `despite + clause`, `since vs for`, `in/on/at` confusion.
 
 ### M3.3 Concept mastery
 
-- [ ] current mastery/strength projection derived from history;
-- [ ] weak concepts view;
-- [ ] pack/session contributes to mastery without rewriting history.
+- [x] current mastery/strength projection derived from history;
+- [x] weak concepts view;
+- [x] pack/session contributes to mastery without rewriting history.
 
 ### M3.4 Short answer
 
-- [ ] add short-answer exercise type;
-- [ ] deterministic normalization first where appropriate;
-- [ ] AI grading only when semantic evaluation is genuinely needed;
-- [ ] grading output schema includes score/correctness, explanation, and bounded misconception tags;
-- [ ] uncertain grading can be surfaced instead of pretending certainty.
+- [x] add short-answer exercise type;
+- [x] deterministic normalization first where appropriate;
+- [x] AI grading only when semantic evaluation is genuinely needed;
+- [x] grading output schema includes score/correctness, explanation, and bounded misconception tags;
+- [x] uncertain grading can be surfaced instead of pretending certainty.
 
 ### M3.5 Explanation behavior
 
-- [ ] explanations reference source evidence when source-grounded;
-- [ ] wrong answers can explain both correct rule and learner-specific mistake;
-- [ ] explanation generation can be lazy/on-demand to control API cost.
+- [x] explanations reference source evidence when source-grounded;
+- [x] wrong answers can explain both correct rule and learner-specific mistake;
+- [x] explanation generation can be lazy/on-demand to control API cost.
 
 ## M3 exit gate
 
@@ -407,7 +407,7 @@ The app can demonstrate that repeated mistakes affect a concept-level weakness v
 
 # M4 — FSRS and daily review
 
-**Status:** `[ ]`
+**Status:** `[x] COMPLETE` (exit gate passed 2026-08-16)
 
 ## Objective
 
@@ -417,11 +417,11 @@ Make the app useful repeatedly without requiring a new source every session.
 
 ### M4.1 Scheduling model
 
-- [ ] integrate `ts-fsrs`;
-- [ ] ReviewCard persistence;
-- [ ] immutable ReviewLog persistence;
-- [ ] due calculation independent of AI;
-- [ ] scheduler configuration serialized/validated.
+- [x] integrate `ts-fsrs`;
+- [x] ReviewCard persistence;
+- [x] immutable ReviewLog persistence;
+- [x] due calculation independent of AI;
+- [x] scheduler configuration serialized/validated.
 
 ### M4.2 Rating UX
 
@@ -436,11 +436,11 @@ Lock the selected behavior in `docs/DECISIONS.md` before shipping M4.
 
 ### M4.3 Daily review queue
 
-- [ ] due count;
-- [ ] review session;
-- [ ] use existing exercise when appropriate;
-- [ ] generate a fresh contextual exercise only when needed and network/provider is available;
-- [ ] offline review still works with already-stored material.
+- [x] due count;
+- [x] review session;
+- [x] use existing exercise when appropriate;
+- [x] generate a fresh contextual exercise only when needed and network/provider is available;
+- [x] offline review still works with already-stored material.
 
 ### M4.4 Dashboard
 
@@ -463,7 +463,7 @@ A learner can use the app across multiple days and receive due reviews based on 
 
 # M5 — Data durability, migrations, offline hardening, and release quality
 
-**Status:** `[ ]`
+**Status:** `[x] COMPLETE` (exit gate passed 2026-08-16)
 
 ## Objective
 
@@ -473,53 +473,53 @@ Make the local-first promise trustworthy enough for real personal use.
 
 ### M5.1 Export/import complete flow
 
-- [ ] export all supported non-secret user data;
-- [ ] schema version/migrations;
-- [ ] import validation before mutation;
-- [ ] clear replace-vs-merge semantics; initial release may support replace only;
-- [ ] backup/restore round-trip automated test;
-- [ ] API credentials never included by default.
+- [x] export all supported non-secret user data;
+- [x] schema version/migrations;
+- [x] import validation before mutation;
+- [x] clear replace-vs-merge semantics; initial release may support replace only;
+- [x] backup/restore round-trip automated test;
+- [x] API credentials never included by default.
 
 ### M5.2 DB migrations
 
-- [ ] migration tests from every released DB schema version;
-- [ ] rollback/failure behavior understood;
-- [ ] no destructive schema change without migration.
+- [x] migration tests from every released DB schema version;
+- [x] rollback/failure behavior understood;
+- [x] no destructive schema change without migration.
 
 ### M5.3 Storage UX
 
-- [ ] persistence status;
-- [ ] estimated storage usage where available;
-- [ ] warning when browser storage is not persistent;
-- [ ] backup reminder based on meaningful data changes rather than nagging on every launch.
+- [x] persistence status;
+- [x] estimated storage usage where available;
+- [x] warning when browser storage is not persistent;
+- [x] backup reminder based on meaningful data changes rather than nagging on every launch.
 
 ### M5.4 PWA/offline/update testing
 
-- [ ] app shell works offline;
-- [ ] local packs/reviews work offline;
-- [ ] generation/cloud actions fail gracefully offline;
-- [ ] service-worker update prompt tested;
-- [ ] app update cannot silently strand DB migrations.
+- [x] app shell works offline;
+- [x] local packs/reviews work offline;
+- [x] generation/cloud actions fail gracefully offline;
+- [x] service-worker update prompt tested;
+- [x] app update cannot silently strand DB migrations.
 
 ### M5.5 Security hardening
 
-- [ ] no raw model HTML execution;
-- [ ] safe markdown/text rendering;
-- [ ] dependency/runtime-script review;
-- [ ] credential logs scrubbed;
-- [ ] Content Security Policy/deployment guidance documented;
-- [ ] public repository contains no real credentials or user exports.
+- [x] no raw model HTML execution;
+- [x] safe markdown/text rendering;
+- [x] dependency/runtime-script review;
+- [x] credential logs scrubbed;
+- [x] Content Security Policy/deployment guidance documented;
+- [x] public repository contains no real credentials or user exports.
 
 ### M5.6 Critical E2E suite
 
 Playwright covers at least:
 
-- configure mocked provider;
-- create source/pack;
-- practice;
-- reload and retain data;
-- review due flow;
-- export/restore representative dataset.
+- [x] configure mocked provider;
+- [x] create source/pack;
+- [x] practice;
+- [x] reload and retain data;
+- [x] review due flow;
+- [x] export/restore representative dataset.
 
 ## M5 exit gate — Durable first release
 

@@ -177,7 +177,8 @@ select {
 .field input[type='text'],
 .field input[type='password'],
 .field input[type='url'],
-.field textarea {
+.field textarea,
+.field select {
   width: 100%;
   border-radius: 10px;
   border: 1px solid var(--border);
@@ -187,9 +188,110 @@ select {
 }
 
 .field input:focus,
-.field textarea:focus {
+.field textarea:focus,
+.field select:focus {
   outline: 2px solid rgba(20, 184, 166, 0.45);
   border-color: var(--accent);
+}
+
+.choice-grid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.choice-card {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  background: rgba(8, 12, 22, 0.35);
+  cursor: pointer;
+}
+
+.choice-card.active {
+  border-color: var(--accent);
+  background: rgba(20, 184, 166, 0.1);
+}
+
+.choice-card input {
+  margin-top: 0.2rem;
+}
+
+.choice-card span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.entity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.entity-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  background: rgba(8, 12, 22, 0.35);
+}
+
+.evidence {
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.code-block {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(8, 12, 22, 0.55);
+  overflow: auto;
+  white-space: pre-wrap;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  max-height: 240px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 0.25rem 0.7rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: rgba(8, 12, 22, 0.45);
+}
+
+.exercise-prompt {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.45;
+}
+
+.progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(42, 56, 84, 0.8);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--success));
+  transition: width 0.2s ease;
 }
 
 .checkbox-field {

@@ -17,16 +17,22 @@ function formatBytes(value: number | null): string {
 }
 
 export function DataSettingsPage() {
-  const { storagePersistence, exportService } = useAppServices()
+  const { storagePersistence, exportService, settings } = useAppServices()
   const [status, setStatus] = useState<StoragePersistenceStatus | null>(null)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [importPreview, setImportPreview] = useState<ImportValidationResult | null>(null)
+  const [pendingRestore, setPendingRestore] = useState<unknown | null>(null)
+  const [backupReminder, setBackupReminder] = useState(false)
 
   const refresh = useCallback(async () => {
-    const next = await storagePersistence.getStatus()
+    const [next, appSettings] = await Promise.all([
+      storagePersistence.getStatus(),
+      settings.get(),
+    ])
     setStatus(next)
-  }, [storagePersistence])
+    setBackupReminder(exportService.shouldRemindBackup(appSettings))
+  }, [exportService, settings, storagePersistence])
 
   useEffect(() => {
     void refresh()
@@ -64,6 +70,7 @@ export function DataSettingsPage() {
       anchor.click()
       URL.revokeObjectURL(url)
       setMessage('Export downloaded. API keys are never included.')
+      await refresh()
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Export failed')
     } finally {
@@ -73,6 +80,7 @@ export function DataSettingsPage() {
 
   async function onImportFile(file: File | null) {
     setImportPreview(null)
+    setPendingRestore(null)
     if (!file) {
       return
     }
@@ -82,8 +90,9 @@ export function DataSettingsPage() {
       const result = exportService.validateImport(raw)
       setImportPreview(result)
       if (result.ok) {
+        setPendingRestore(raw)
         setMessage(
-          `Import valid (preview only): ${result.summary.providerProfileCount} provider profile(s). Destructive restore is deferred past M0.`,
+          `Import valid: ${result.summary.packCount} packs, ${result.summary.exerciseCount} exercises, ${result.summary.attemptCount} attempts. Confirm replace to restore.`,
         )
       } else {
         setMessage(`Import invalid: ${result.issues.join('; ')}`)
@@ -93,15 +102,70 @@ export function DataSettingsPage() {
     }
   }
 
+  async function onConfirmRestore() {
+    if (!pendingRestore) return
+    const ok = window.confirm(
+      'Replace ALL local learning data with this export? This cannot be undone. API keys are never imported.',
+    )
+    if (!ok) return
+    setBusy(true)
+    setMessage(null)
+    try {
+      const result = await exportService.restoreReplace(pendingRestore)
+      if (!result.ok) {
+        setMessage(`Restore failed: ${result.issues.join('; ')}`)
+      } else {
+        setMessage(
+          `Restored ${result.summary.packCount} packs and ${result.summary.reviewCardCount} review cards. Reload if the dashboard looks stale.`,
+        )
+        setPendingRestore(null)
+        await refresh()
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Restore failed')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function onClearLearning() {
+    const ok = window.confirm(
+      'Clear all learning data (sources, packs, attempts, reviews)? Provider profiles are kept. Export first if needed.',
+    )
+    if (!ok) return
+    setBusy(true)
+    try {
+      await exportService.clearAllLearningData()
+      setMessage('Learning data cleared.')
+      await refresh()
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Clear failed')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div className="page">
       <h1>Data &amp; Storage</h1>
       <p className="lead">
-        IndexedDB is the local source of truth. Persistent storage reduces eviction risk,
-        but you can still clear site data — keep exports handy.
+        IndexedDB is the local source of truth. Persistent storage reduces eviction risk, but you
+        can still clear site data — keep exports handy.
       </p>
 
+      {backupReminder ? (
+        <div className="banner warning">
+          Learning data changed since your last export. Download a backup when you can.
+        </div>
+      ) : null}
+
       {message ? <div className="banner info">{message}</div> : null}
+
+      {!status?.persisted && status?.supported ? (
+        <div className="banner warning">
+          Browser storage is not marked persistent. Request persistence and export regularly.
+        </div>
+      ) : null}
 
       <section className="card stack">
         <h2>Browser storage</h2>
@@ -151,8 +215,8 @@ export function DataSettingsPage() {
       <section className="card stack">
         <h2>Export</h2>
         <p className="muted" style={{ margin: 0 }}>
-          Downloads a versioned JSON envelope of non-secret local data (provider profiles
-          and app settings). Credentials are excluded by design.
+          Downloads a versioned JSON envelope of all non-secret learning state (sources, packs,
+          exercises, attempts, mastery, FSRS cards). Credentials are excluded by design.
         </p>
         <div className="row">
           <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void onExport()}>
@@ -162,10 +226,9 @@ export function DataSettingsPage() {
       </section>
 
       <section className="card stack">
-        <h2>Import validation (preview)</h2>
+        <h2>Restore (replace)</h2>
         <p className="muted" style={{ margin: 0 }}>
-          M0 validates the export format only. Full destructive restore ships in a later
-          durability milestone.
+          Validate an export, then replace local learning data. API keys are never imported.
         </p>
         <div className="field">
           <label htmlFor="importFile">Choose export JSON</label>
@@ -177,7 +240,7 @@ export function DataSettingsPage() {
           />
         </div>
         {importPreview ? (
-          <pre className="banner info" style={{ overflow: 'auto', whiteSpace: 'pre-wrap' }}>
+          <pre className="code-block">
             {JSON.stringify(
               importPreview.ok
                 ? { ok: true, summary: importPreview.summary }
@@ -187,6 +250,24 @@ export function DataSettingsPage() {
             )}
           </pre>
         ) : null}
+        <div className="row">
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={busy || !pendingRestore}
+            onClick={() => void onConfirmRestore()}
+          >
+            Replace local data from import
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            disabled={busy}
+            onClick={() => void onClearLearning()}
+          >
+            Clear learning data
+          </button>
+        </div>
       </section>
     </div>
   )

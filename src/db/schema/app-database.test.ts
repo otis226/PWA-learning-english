@@ -3,7 +3,7 @@ import { AppDatabase, APP_DATABASE_VERSION } from './app-database'
 import { ProviderProfileRepository } from '../repositories/provider-profile-repository'
 import { AppSettingsRepository } from '../repositories/app-settings-repository'
 
-describe('AppDatabase v1', () => {
+describe('AppDatabase RC1', () => {
   let db: AppDatabase
 
   beforeEach(async () => {
@@ -16,10 +16,27 @@ describe('AppDatabase v1', () => {
     await db.delete()
   })
 
-  it('opens at version 1 with required stores', async () => {
+  it('opens at version 2 with learning stores', async () => {
     expect(db.verno).toBe(APP_DATABASE_VERSION)
-    expect(db.tables.map((t) => t.name).sort()).toEqual(
-      ['appSettings', 'meta', 'providerProfiles'].sort(),
+    expect(APP_DATABASE_VERSION).toBe(2)
+    const names = db.tables.map((t) => t.name).sort()
+    expect(names).toEqual(
+      [
+        'appSettings',
+        'attempts',
+        'conceptMastery',
+        'conceptOccurrences',
+        'concepts',
+        'exercises',
+        'learningPacks',
+        'meta',
+        'mistakeSignals',
+        'providerProfiles',
+        'reviewCards',
+        'reviewLogs',
+        'sources',
+        'studySessions',
+      ].sort(),
     )
   })
 

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "exercise-plan.v1",
+  "items": [
+    {
+      "conceptLabel": "despite + noun/V-ing",
+      "exerciseType": "flashcard",
+      "skill": "grammar"
+    },
+    {
+      "conceptLabel": "despite + noun/V-ing",
+      "exerciseType": "multiple_choice",
+      "skill": "grammar"
+    },
+    {
+      "conceptLabel": "although + clause",
+      "exerciseType": "cloze",
+      "skill": "grammar"
+    },
+    {
+      "conceptLabel": "despite + noun/V-ing",
+      "exerciseType": "true_false",
+      "skill": "reading"
+    },
+    {
+      "conceptLabel": "despite + noun/V-ing",
+      "exerciseType": "short_answer",
+      "skill": "grammar"
+    }
+  ]
+}
