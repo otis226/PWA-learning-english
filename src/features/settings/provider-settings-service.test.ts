@@ -90,4 +90,74 @@ describe('ProviderSettingsService', () => {
     const cred = await credentials.get(profile.id)
     expect(cred?.persistence).toBe('remember')
   })
+
+  it('preserves existing key when switching session → remember with blank apiKey', async () => {
+    const profile = await service.saveProvider({
+      displayName: 'Switch',
+      baseUrl: 'https://api.example.com/v1',
+      model: 'm',
+      apiKey: 'sk-keep-me',
+      rememberOnDevice: false,
+    })
+
+    await service.saveProvider({
+      id: profile.id,
+      displayName: 'Switch',
+      baseUrl: 'https://api.example.com/v1',
+      model: 'm',
+      apiKey: '',
+      rememberOnDevice: true,
+    })
+
+    expect(await credentials.get(profile.id)).toEqual({
+      apiKey: 'sk-keep-me',
+      persistence: 'remember',
+    })
+  })
+
+  it('preserves existing key when switching remember → session with blank apiKey', async () => {
+    const profile = await service.saveProvider({
+      displayName: 'Switch',
+      baseUrl: 'https://api.example.com/v1',
+      model: 'm',
+      apiKey: 'sk-keep-me-too',
+      rememberOnDevice: true,
+    })
+
+    await service.saveProvider({
+      id: profile.id,
+      displayName: 'Switch',
+      baseUrl: 'https://api.example.com/v1',
+      model: 'm',
+      apiKey: '   ',
+      rememberOnDevice: false,
+    })
+
+    expect(await credentials.get(profile.id)).toEqual({
+      apiKey: 'sk-keep-me-too',
+      persistence: 'session',
+    })
+  })
+
+  it('rejects non-http(s) base URLs at save time', async () => {
+    await expect(
+      service.saveProvider({
+        displayName: 'Bad',
+        baseUrl: 'ftp://files.example.com/v1',
+        model: 'm',
+        apiKey: 'sk-x',
+        rememberOnDevice: false,
+      }),
+    ).rejects.toThrow(/http or https/i)
+
+    await expect(
+      service.saveProvider({
+        displayName: 'Bad',
+        baseUrl: 'not-a-url',
+        model: 'm',
+        apiKey: 'sk-x',
+        rememberOnDevice: false,
+      }),
+    ).rejects.toThrow()
+  })
 })

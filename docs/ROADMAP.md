@@ -152,11 +152,10 @@ The UI should already expose:
 All of the following must be true:
 
 ```bash
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
+pnpm verify
 ```
+
+(`pnpm verify` runs lint + typecheck + test + build.)
 
 And manually/automated where appropriate:
 

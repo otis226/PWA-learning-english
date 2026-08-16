@@ -101,15 +101,15 @@ export class ProviderSettingsService {
     const persistence: CredentialPersistence = input.rememberOnDevice
       ? 'remember'
       : 'session'
-    if (input.apiKey.trim()) {
-      await this.credentials.set(profile.id, input.apiKey, persistence)
-    } else if (!existing) {
-      // new profile without key — leave empty
-    } else if (!input.rememberOnDevice) {
-      // If user clears remember mode without providing a new key, keep existing session key if any.
+    const trimmedKey = input.apiKey.trim()
+    if (trimmedKey) {
+      await this.credentials.set(profile.id, trimmedKey, persistence)
+    } else if (existing) {
+      // Blank key field: keep the existing secret; only move persistence when mode changes
+      // (session ↔ remember). Both directions must preserve the key.
       const current = await this.credentials.get(profile.id)
-      if (current && current.persistence === 'remember') {
-        await this.credentials.set(profile.id, current.apiKey, 'session')
+      if (current && current.persistence !== persistence) {
+        await this.credentials.set(profile.id, current.apiKey, persistence)
       }
     }
 

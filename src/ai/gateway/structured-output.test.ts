@@ -4,8 +4,11 @@ import {
   extractJsonCandidate,
   runStructuredOutput,
   selectStructuredStrategies,
+  TERMINAL_STRUCTURED_OUTPUT_ERROR_CATEGORIES,
 } from './structured-output'
 import type { AIProviderCapabilities } from '../schemas/capabilities'
+import { AIRequestError } from '../providers/openai-compatible/errors'
+import type { AIErrorCategory } from '../providers/openai-compatible/errors'
 
 const sampleSchema = z.object({
   title: z.string().min(1),
@@ -118,4 +121,63 @@ describe('structured-output contract', () => {
       expect(result.strategy).toBe('extract_repair')
     }
   })
+
+  it('falls back when provider_error suggests unsupported response_format', async () => {
+    const complete = vi
+      .fn()
+      .mockRejectedValueOnce(
+        new AIRequestError('provider_error', 'response_format not supported', {
+          status: 400,
+          providerMessage: 'unknown parameter response_format',
+        }),
+      )
+      .mockResolvedValueOnce({
+        content: '{"title":"via object","score":2}',
+        raw: {},
+      })
+
+    const result = await runStructuredOutput(complete, {
+      schema: sampleSchema,
+      schemaName: 'Sample',
+      jsonSchema: { type: 'object' },
+      messages: [{ role: 'user', content: 'go' }],
+      capabilities: { ...baseCapabilities, jsonSchema: true, jsonObject: true },
+      maxRepairAttempts: 0,
+    })
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      // Next enabled strategy after failed json_schema is json_object.
+      expect(result.strategy).toBe('json_object')
+    }
+    expect(complete).toHaveBeenCalledTimes(2)
+  })
+
+  it.each(
+    [...TERMINAL_STRUCTURED_OUTPUT_ERROR_CATEGORIES] as AIErrorCategory[],
+  )(
+    'does not fallback on terminal AI error category %s (single provider call)',
+    async (category) => {
+      const complete = vi
+        .fn()
+        .mockRejectedValue(new AIRequestError(category, `terminal:${category}`))
+
+      const result = await runStructuredOutput(complete, {
+        schema: sampleSchema,
+        schemaName: 'Sample',
+        jsonSchema: { type: 'object' },
+        messages: [{ role: 'user', content: 'go' }],
+        capabilities: { ...baseCapabilities, jsonSchema: true, jsonObject: true },
+        maxRepairAttempts: 2,
+      })
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error).toBeInstanceOf(AIRequestError)
+        expect((result.error as AIRequestError).category).toBe(category)
+        expect(result.attempts).toBe(1)
+        expect(result.strategyTried).toEqual(['json_schema'])
+      }
+      expect(complete).toHaveBeenCalledTimes(1)
+    },
+  )
 })

@@ -6,7 +6,10 @@ import type {
   ChatCompletionResult,
   ChatMessage,
 } from '../providers/openai-compatible/chat-client'
-import { AIRequestError } from '../providers/openai-compatible/errors'
+import {
+  AIRequestError,
+  type AIErrorCategory,
+} from '../providers/openai-compatible/errors'
 import { AppError } from '../../shared/errors'
 
 /**
@@ -15,8 +18,32 @@ import { AppError } from '../../shared/errors'
  * 2. json_object when capability is enabled
  * 3. plain completion + JSON extraction + Zod validate + bounded repair
  *
+ * Fallback applies only when a structured-output capability/response_format
+ * appears unsupported. Terminal transport/auth errors must not cascade.
+ *
  * Invalid model output never returns as success domain data.
  */
+
+/** Errors that must stop the runner immediately (no strategy fallback). */
+export const TERMINAL_STRUCTURED_OUTPUT_ERROR_CATEGORIES = [
+  'unauthorized',
+  'rate_limit',
+  'timeout',
+  'offline',
+  'network_or_cors',
+  'aborted',
+  'missing_credential',
+] as const satisfies readonly AIErrorCategory[]
+
+const terminalStructuredOutputErrors = new Set<AIErrorCategory>(
+  TERMINAL_STRUCTURED_OUTPUT_ERROR_CATEGORIES,
+)
+
+export function isTerminalStructuredOutputError(error: unknown): boolean {
+  return (
+    error instanceof AIRequestError && terminalStructuredOutputErrors.has(error.category)
+  )
+}
 export type StructuredOutputStrategy = 'json_schema' | 'json_object' | 'extract_repair'
 
 export type StructuredOutputRequest<TSchema extends ZodTypeAny> = {
@@ -124,7 +151,16 @@ export async function runStructuredOutput<TSchema extends ZodTypeAny>(
       } catch (error) {
         if (error instanceof AIRequestError) {
           lastError = error
-          // Capability may be unsupported — try next strategy.
+          // Auth/network/timeout/etc. are terminal — do not fake a capability fallback.
+          if (isTerminalStructuredOutputError(error)) {
+            return {
+              ok: false,
+              error: lastError,
+              strategyTried: tried,
+              attempts,
+            }
+          }
+          // Non-terminal provider/response errors may mean response_format is unsupported.
           break
         }
         lastError =

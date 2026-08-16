@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { CredentialStore } from '../../credentials/types'
 import { OpenAICompatibleChatClient } from './chat-client'
 import { AIRequestError } from './errors'
@@ -24,6 +24,10 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 describe('OpenAICompatibleChatClient', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('completes a successful chat request', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(
       jsonResponse({
@@ -47,6 +51,120 @@ describe('OpenAICompatibleChatClient', () => {
     expect(init.method).toBe('POST')
     const headers = init.headers as Record<string, string>
     expect(headers.Authorization).toBe('Bearer sk-test')
+  })
+
+  it('testConnection sends a minimal body without optional generation knobs', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse({
+        choices: [{ message: { content: 'pong' } }],
+      }),
+    )
+    const client = new OpenAICompatibleChatClient({
+      baseUrl: 'https://api.example.com/v1',
+      model: 'probe-model',
+      providerProfileId: 'p1',
+      credentialStore: memoryCredentials(),
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      isOnline: () => true,
+    })
+
+    await client.testConnection()
+    const [, init] = fetchImpl.mock.calls[0] as [string, RequestInit]
+    const body = JSON.parse(String(init.body)) as Record<string, unknown>
+    expect(body).toEqual({
+      model: 'probe-model',
+      messages: [{ role: 'user', content: 'ping' }],
+    })
+    expect(body).not.toHaveProperty('temperature')
+    expect(body).not.toHaveProperty('max_tokens')
+    expect(body).not.toHaveProperty('response_format')
+  })
+
+  it('does not apply a default client timeout when timeoutMs is omitted', async () => {
+    vi.useFakeTimers()
+    let resolveFetch!: (value: Response) => void
+    const fetchImpl = vi.fn(
+      (_url: string, init?: RequestInit) =>
+        new Promise<Response>((resolve, reject) => {
+          resolveFetch = resolve
+          const signal = init?.signal
+          if (signal) {
+            signal.addEventListener(
+              'abort',
+              () => {
+                const err = new Error('aborted')
+                err.name = 'AbortError'
+                reject(err)
+              },
+              { once: true },
+            )
+          }
+        }),
+    )
+
+    const client = new OpenAICompatibleChatClient({
+      baseUrl: 'https://api.example.com/v1',
+      model: 'm',
+      providerProfileId: 'p1',
+      credentialStore: memoryCredentials(),
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      isOnline: () => true,
+    })
+
+    const pending = client.complete({
+      model: 'm',
+      messages: [{ role: 'user', content: 'slow' }],
+    })
+
+    await vi.advanceTimersByTimeAsync(60_000)
+    resolveFetch(
+      jsonResponse({
+        choices: [{ message: { content: 'late' } }],
+      }),
+    )
+    await expect(pending).resolves.toMatchObject({ content: 'late' })
+  })
+
+  it('honors an explicit timeoutMs configuration', async () => {
+    vi.useFakeTimers()
+    const fetchImpl = vi.fn(
+      (_url: string, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          const signal = init?.signal
+          if (signal) {
+            signal.addEventListener(
+              'abort',
+              () => {
+                const err = new Error('aborted')
+                err.name = 'AbortError'
+                reject(err)
+              },
+              { once: true },
+            )
+          }
+        }),
+    )
+
+    const client = new OpenAICompatibleChatClient({
+      baseUrl: 'https://api.example.com/v1',
+      model: 'm',
+      providerProfileId: 'p1',
+      credentialStore: memoryCredentials(),
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      timeoutMs: 5_000,
+      isOnline: () => true,
+    })
+
+    const pending = client.complete({
+      model: 'm',
+      messages: [{ role: 'user', content: 'slow' }],
+    })
+    const expectation = expect(pending).rejects.toMatchObject({
+      category: 'timeout',
+    } satisfies Partial<AIRequestError>)
+
+    await vi.advanceTimersByTimeAsync(5_000)
+    await expectation
   })
 
   it('maps 401 to unauthorized', async () => {
