@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "analysis.v1",
+  "title": "Core connectors",
+  "estimatedCefr": "B1",
+  "learningObjectives": [
+    "Use despite and although correctly",
+    "Distinguish despite + noun from although + clause"
+  ],
+  "skills": ["grammar", "vocabulary"],
+  "concepts": [
+    {
+      "label": "despite + noun/V-ing",
+      "kind": "grammar",
+      "definition": "Despite is followed by a noun or -ing form, not a full clause.",
+      "evidenceText": "despite the rain",
+      "patternHint": "despite + noun"
+    },
+    {
+      "label": "although + clause",
+      "kind": "grammar",
+      "definition": "Although introduces a full clause with a subject and verb.",
+      "evidenceText": "although it rained",
+      "patternHint": "although + clause"
+    }
+  ],
+  "suggestedProgression": ["recognize", "choose in context", "produce"],
+  "notes": "Focus on contrast connectors."
+}

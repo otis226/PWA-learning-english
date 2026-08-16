@@ -13,6 +13,7 @@ describe('ExportService', () => {
     db = new AppDatabase(`export-test-${crypto.randomUUID()}`)
     await db.open()
     service = new ExportService(
+      db,
       new ProviderProfileRepository(db),
       new AppSettingsRepository(db),
     )
@@ -39,11 +40,23 @@ describe('ExportService', () => {
       activeProviderProfileId: 'prov_1',
       updatedAt: now,
     })
+    await db.sources.put({
+      id: 'src_1',
+      type: 'pasted_text',
+      title: 'T',
+      rawContent: 'hello',
+      normalizedContent: 'hello',
+      contentHash: 'abc',
+      charCount: 5,
+      createdAt: now,
+      updatedAt: now,
+    })
 
     const envelope = await service.buildExport()
     expect(envelope.format).toBe(EXPORT_FORMAT)
     expect(envelope.schemaVersion).toBe(EXPORT_SCHEMA_VERSION)
     expect(envelope.data.providerProfiles).toHaveLength(1)
+    expect(envelope.data.sources).toHaveLength(1)
     expect(envelope.data.appSettings.activeProviderProfileId).toBe('prov_1')
 
     const json = JSON.stringify(envelope)
@@ -53,7 +66,7 @@ describe('ExportService', () => {
     assertNoSecrets(envelope)
   })
 
-  it('validateImport accepts a good envelope and rejects secrets', () => {
+  it('validateImport accepts good envelopes and rejects secrets', () => {
     const good = {
       format: EXPORT_FORMAT,
       schemaVersion: EXPORT_SCHEMA_VERSION,
@@ -64,6 +77,17 @@ describe('ExportService', () => {
           activeProviderProfileId: null,
           updatedAt: new Date().toISOString(),
         },
+        sources: [],
+        learningPacks: [],
+        concepts: [],
+        conceptOccurrences: [],
+        exercises: [],
+        studySessions: [],
+        attempts: [],
+        mistakeSignals: [],
+        conceptMastery: [],
+        reviewCards: [],
+        reviewLogs: [],
       },
     }
     expect(service.validateImport(good).ok).toBe(true)
@@ -88,5 +112,37 @@ describe('ExportService', () => {
     }
     const result = service.validateImport(bad)
     expect(result.ok).toBe(false)
+  })
+
+  it('replace restore round-trips learning rows', async () => {
+    const now = new Date().toISOString()
+    await db.learningPacks.put({
+      id: 'pack_1',
+      sourceId: 'src_1',
+      title: 'Pack',
+      learningGoal: 'mixed',
+      status: 'ready',
+      learningObjectives: [],
+      skills: [],
+      conceptIds: [],
+      exerciseIds: [],
+      suggestedProgression: [],
+      provenance: {
+        providerProfileId: 'p',
+        model: 'm',
+        promptVersion: 'v',
+        schemaVersion: 'v',
+        sourceContentHash: 'h',
+        generatedAt: now,
+      },
+      createdAt: now,
+      updatedAt: now,
+    })
+    const envelope = await service.buildExport()
+    await service.clearAllLearningData()
+    expect(await db.learningPacks.count()).toBe(0)
+    const restored = await service.restoreReplace(envelope)
+    expect(restored.ok).toBe(true)
+    expect(await db.learningPacks.get('pack_1')).toBeTruthy()
   })
 })

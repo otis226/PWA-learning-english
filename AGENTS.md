@@ -16,11 +16,20 @@ Then inspect the relevant source and tests. Never implement from chat history al
 
 ## Operating rules
 
-### 1. Stay inside the active milestone
+### 1. Execute the active release target continuously
 
-`docs/CURRENT_FOCUS.md` defines the active milestone. Do not implement future-roadmap features merely because they are easy or interesting.
+`docs/CURRENT_FOCUS.md` defines the active **release target** and the current internal milestone.
 
-If a future concern affects today's architecture, create an interface/extension point only when needed; do not implement the future feature.
+Milestones are internal quality checkpoints, not mandatory user-review stops. When the current milestone exit gate genuinely passes, update the repository docs and continue immediately to the next milestone included in the active release target. Do not wait for user review between milestones unless `docs/CURRENT_FOCUS.md` explicitly says to stop.
+
+Stop the long run only when one of these is true:
+
+- the active release target exit gate is complete;
+- a genuine blocker prevents safe progress;
+- continuing risks data loss, credential exposure, security regression, or an irreversible product decision requiring user input;
+- the repository instruction explicitly requests a review checkpoint.
+
+Do not implement work beyond the active release target merely because it is easy or interesting. If a later concern affects today's architecture, create the smallest extension point needed without implementing the later feature.
 
 ### 2. Preserve the core architecture
 
@@ -87,7 +96,7 @@ Do not hide browser limitations with hacks.
 - Do not disable browser security or recommend launching Chrome with CORS disabled.
 - Arbitrary article URL ingestion is not guaranteed in a backend-free app.
 - Prefer paste-text and local-file ingestion for reliable MVP behavior.
-- A future local bridge/proxy may be added, but it is not part of the initial milestone unless roadmap status changes.
+- A future local bridge/proxy may be added, but it is not part of the active release target unless roadmap status changes.
 
 ### 6. API-key handling
 
@@ -133,18 +142,15 @@ Do not generate factual reading-comprehension questions that require knowledge a
 
 ### 9. Testing and quality gates
 
-Every milestone defines its exit gate in `docs/ROADMAP.md`. Do not mark a milestone complete until those gates pass.
+Every milestone defines an exit gate in `docs/ROADMAP.md`. Do not mark a milestone complete until its gate passes. However, passing a milestone gate means **advance to the next milestone in the active release target**, not stop for external review.
 
-Baseline commands once the app is bootstrapped:
+Use the repository verification command:
 
 ```bash
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
+pnpm verify
 ```
 
-Add Playwright for critical end-to-end flows once those flows exist.
+Run narrower checks during a batch when useful, but run `pnpm verify` before declaring a milestone complete. Add Playwright for critical end-to-end flows once those flows exist.
 
 Prefer deterministic tests with mocked AI responses. Do not make normal CI depend on a paid live model endpoint.
 
@@ -153,9 +159,10 @@ Prefer deterministic tests with mocked AI responses. Do not make normal CI depen
 After every meaningful batch of work:
 
 1. run the relevant checks;
-2. update `docs/CURRENT_FOCUS.md` with completed work, remaining work, blockers, and next action;
+2. update `docs/CURRENT_FOCUS.md` with completed work, remaining work, blockers, and exact next action;
 3. update `docs/DECISIONS.md` if an architectural/product decision changed;
-4. update `docs/ROADMAP.md` only when milestone status or scope actually changes.
+4. update `docs/ROADMAP.md` only when milestone status or scope actually changes;
+5. continue working if the active release target is not yet complete.
 
 If context is reset, the next agent must be able to continue using repository state alone.
 
@@ -181,10 +188,12 @@ A task is done only when:
 - user-visible failure states are handled;
 - `docs/CURRENT_FOCUS.md` reflects reality.
 
+A release run is done only when the release target exit gate in `docs/CURRENT_FOCUS.md` is satisfied end-to-end.
+
 ## Git discipline
 
-- Keep changes scoped to one roadmap task or coherent batch.
-- Prefer small, reviewable commits.
+- Keep changes scoped to one coherent batch inside the release target.
+- Prefer small, resumable commits; do not create a PR or stop solely because an internal milestone ended.
 - Do not mix unrelated refactors with feature work.
 - Never rewrite persisted-data history merely to make migrations look cleaner.
 - Do not commit generated secrets, local database dumps, or personal learning exports.
@@ -193,11 +202,12 @@ A task is done only when:
 
 Use this priority order:
 
-1. current user instruction;
+1. current repository/user instruction;
 2. `AGENTS.md`;
-3. `docs/DECISIONS.md`;
-4. active milestone acceptance criteria;
-5. `docs/PROJECT_CONTEXT.md`;
-6. smallest reversible implementation.
+3. `docs/CURRENT_FOCUS.md` active release target;
+4. `docs/DECISIONS.md`;
+5. current milestone acceptance criteria;
+6. `docs/PROJECT_CONTEXT.md`;
+7. smallest reversible implementation.
 
 Record material uncertainty instead of silently inventing product rules.

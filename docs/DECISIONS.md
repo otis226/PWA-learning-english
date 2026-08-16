@@ -237,3 +237,53 @@ OpenAI-compatible client timeout is optional/configurable. Omitting `timeoutMs` 
 **Date:** 2026-08-16
 
 `Test connection` sends only model + a tiny user message. It must not require optional generation parameters (`temperature`, `max_tokens`, `response_format`). Capability probing remains a separate concern.
+
+## D-023 — FSRS rating UX mapping (M4)
+
+**Status:** Accepted  
+**Date:** 2026-08-16
+
+Locked rating behavior for RC1:
+
+| Learner outcome | FSRS grade |
+|-----------------|------------|
+| Incorrect closed-form answer | Again (1) |
+| Correct closed-form answer without finer control | Good (3) |
+| Flashcard self-rate Again / Hard / Good / Easy | Again / Hard / Good / Easy |
+| Short-answer uncertain (`isCorrect === null`) | No schedule update until a decisive outcome |
+
+Rationale: pure `correct → Good` is acceptable for MVP closed forms; flashcards expose the full grade set because recall quality varies. AI never chooses due dates — only `ts-fsrs` updates `ReviewCard` state from these grades.
+
+## D-024 — Conservative concept identity (M3)
+
+**Status:** Accepted  
+**Date:** 2026-08-16
+
+Canonical identity key:
+
+```text
+${kind}|${normalizedLabel}|${normalizedPatternHint}
+```
+
+Rules:
+
+- normalize with NFKC, trim, collapse whitespace, lowercase;
+- merge only when kind + label + pattern hint match exactly;
+- never merge across kinds (vocabulary `since` ≠ grammar `since`);
+- always retain `ConceptOccurrence` rows per source/pack with evidence;
+- prefer under-merging over unsafe semantic merge.
+
+## D-025 — Export schema v2 replace restore (M5)
+
+**Status:** Accepted  
+**Date:** 2026-08-16
+
+RC1 export envelope `schemaVersion` is **2** and includes full non-secret learning state (sources, packs, concepts, occurrences, exercises, sessions, attempts, mistakes, mastery, review cards/logs, provider profiles, app settings).
+
+Import supports:
+
+1. validate + preview;
+2. **replace-all** restore after explicit confirmation;
+3. legacy v1 envelopes (settings/profiles only) by filling empty learning arrays.
+
+Credentials are never imported or exported.

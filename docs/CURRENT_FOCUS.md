@@ -2,76 +2,61 @@
 
 Last updated: 2026-08-16
 
-## Active milestone
+## Active release target
 
-**M1 — Source intake and AI analysis vertical slice**
+**RC1 — Durable personal-use MVP (M1 → M5 continuously)**
 
 Roadmap source: `docs/ROADMAP.md`.
 
+Current internal milestone: **RC1 complete — awaiting holistic user review**.
+
+## Execution policy for this release run
+
+This branch is intentionally a long-running release branch.
+
+Stop only when the **RC1 final acceptance** below passes, or a genuine blocker prevents safe progress.
+
+Do not open one PR per milestone. One overall RC1 PR is prepared after the end-to-end release target is ready.
+
 ## Current repository state
 
-M0 foundation is complete. A post-exit **M0 review-hardening** pass landed on `feature/m0-foundation` (no M1 domain work).
+RC1 implementation is on `feature/mvp-release-candidate`.
 
-Verified gate:
+Shipped in this run:
+
+- **M1:** Source intake (paste text / vocabulary / custom topic), learning goals, Dexie v2 sources/packs/concepts/occurrences, validated analysis schema + structured-output pipeline, pack preview with concept removal, failure UX mapping.
+- **M2:** Exercise plan → generate → validate → persist pipeline; flashcard, MCQ, cloze, true/false; practice session UX; deterministic scoring; StudySession + immutable Attempt.
+- **M3:** Conservative concept identity keys; mistake signals; mastery/weak projection; short-answer deterministic-first + optional AI grade; lazy learner-specific explanations.
+- **M4:** `ts-fsrs` ReviewCard/ReviewLog; rating UX locked in D-023; due queue + review session; offline stored exercises; dashboard due/recent/weak/activity.
+- **M5:** Export schema v2 full non-secret round-trip + replace restore; v1→v2 migration tests; storage/backup reminder UX; CSP/deploy docs; Playwright critical E2E; golden quality fixtures.
+
+## RC1 final acceptance — checklist
+
+1. [x] Configure arbitrary OpenAI-compatible provider/model
+2. [x] Paste content/topic, choose goal, validated saved pack
+3. [x] Generate + complete mixed practice with explanations
+4. [x] Attempts persist across reload
+5. [x] Wrong answers → concept weakness/mistake state
+6. [x] FSRS due review later
+7. [x] Offline stored review works (stored exercises; no AI required)
+8. [x] Dashboard: due/recent/weak/activity
+9. [x] Export all non-secret state, no credential
+10. [x] Clear → restore → state survives
+11. [x] Playwright critical E2E main loop (`pnpm test:e2e`)
+12. [x] `pnpm verify` passes
+13. [x] Docs accurate (`ROADMAP`, `DECISIONS`, this file)
+
+## Verification
 
 ```bash
 pnpm verify
+pnpm test:e2e   # after: pnpm exec playwright install chromium
 ```
 
-(`verify` = lint + typecheck + test + build; 53 tests passing.)
+## Current next action
 
-Implemented in M0 (including hardening):
-
-- Vite + React + TypeScript + pnpm app with ESLint, Vitest, RTL, and `vite-plugin-pwa`
-- Module boundaries under `src/` (`app`, `features`, `ai`, `db`, `sync`, `shared`, `learning` placeholder)
-- Dexie DB v1: `providerProfiles`, `appSettings`, `meta` + repositories
-- Migration test pattern: `src/db/migrations/migration-chain.test.ts` (fake-indexeddb + Dexie version chain; ready for M1 v2)
-- Storage persistence status/request service (`navigator.storage`)
-- Non-secret `AIProviderProfile` + separate credential store (session default, remember opt-in)
-- Blank API-key field preserves existing secret when switching session ↔ remember
-- Provider base URL validated as absolute http(s) at save (matches adapter contract)
-- OpenAI-compatible Chat Completions `fetch` adapter; optional/configurable timeout (no hard 30s default ceiling)
-- `Test connection` is a minimal probe (model + tiny message only; no temperature/max_tokens)
-- Structured-output fallback runner (json_schema → json_object → extract/validate/repair); **no** fallback on terminal AI errors (auth, rate limit, timeout, offline, network/CORS, aborted, missing credential)
-- Home + Settings AI + Data/Storage UX wired through services (no direct IDB/fetch in components)
-- Versioned JSON export envelope (no secrets) + import validate/preview only
-
-## Mission for the next coding agent
-
-Implement **M1** only: paste text / vocabulary list / custom topic → learning objective → validated AI analysis → Learning Pack draft persisted.
-
-Do not start M2 exercise generation until M1 exit gate passes.
-
-## Recommended M1 next actions
-
-1. Add Source entity + repository and DB migration (new Dexie version; keep v1 chain — follow `migration-chain.test.ts`).
-2. Build intake UX for the three reliable input types (no arbitrary URL fetch).
-3. Define versioned analysis Zod schema + prompt contract using existing structured-output runner.
-4. Persist Learning Pack draft + Concept / ConceptOccurrence minimal models.
-5. Pack preview with ability to remove unwanted concepts before M2 generation.
-6. Cover offline/CORS/auth/invalid-output failure states in UX + mocked tests.
-
-## Important constraints (still in force)
-
-- UI must not call IndexedDB or raw provider `fetch` directly.
-- No paid live AI in normal CI; mock fixtures only.
-- Credentials stay out of exports/backups.
-- No Google Drive (M7). No FSRS (M4). No full practice engine (M2).
+Holistic product/UX review on the RC1 PR. No further milestone work unless review finds blockers.
 
 ## Blockers
 
-None for starting M1.
-
-### Environment notes from M0 run
-
-- `pnpm` was installed via `npm install -g pnpm` because Corepack hit EPERM on this Windows/nvm host.
-- `gh` CLI was not available on PATH; close GitHub issue #1 manually or after installing `gh` if still open.
-- If `vite build` fails resolving `workbox-window`, ensure the dependency is installed (declared in `package.json`).
-
-## Later / discovered
-
-- Need a later UX/design pass for the learner-facing visual system before polishing M2 practice screens.
-- Need to decide exact FSRS rating UX before M4 release.
-- Need to evaluate concept identity/deduplication semantics before M3.
-- Need to decide how much provider capability auto-probing is worth versus manual toggles after testing real cheap providers.
-- Need to evaluate reliable article capture options only after paste/local-file loop proves useful.
+None.

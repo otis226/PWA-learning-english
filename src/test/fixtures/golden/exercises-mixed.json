@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "exercises.v1",
+  "exercises": [
+    {
+      "type": "flashcard",
+      "skill": "grammar",
+      "targetConceptLabels": ["despite + noun/V-ing"],
+      "prompt": "despite pattern",
+      "payload": {
+        "type": "flashcard",
+        "front": "despite + ?",
+        "back": "noun or V-ing (not a full clause)"
+      },
+      "explanation": "Despite takes a noun phrase or gerund, unlike although."
+    },
+    {
+      "type": "multiple_choice",
+      "skill": "grammar",
+      "targetConceptLabels": ["despite + noun/V-ing"],
+      "prompt": "Choose the correct sentence",
+      "payload": {
+        "type": "multiple_choice",
+        "question": "Which sentence is correct?",
+        "options": [
+          "Despite the rain, we went out.",
+          "Despite it rained, we went out.",
+          "Despite we went out, the rain."
+        ],
+        "correctIndex": 0
+      },
+      "explanation": "Despite + noun phrase: the rain."
+    },
+    {
+      "type": "cloze",
+      "skill": "grammar",
+      "targetConceptLabels": ["although + clause"],
+      "prompt": "Fill the blank",
+      "payload": {
+        "type": "cloze",
+        "sentenceWithBlank": "____ it was late, they kept working.",
+        "acceptedAnswers": ["Although", "though"]
+      },
+      "explanation": "Although introduces a clause: it was late."
+    },
+    {
+      "type": "true_false",
+      "skill": "reading",
+      "targetConceptLabels": ["despite + noun/V-ing"],
+      "prompt": "Source fact",
+      "payload": {
+        "type": "true_false",
+        "statement": "The text mentions continuing despite the rain.",
+        "correct": true
+      },
+      "explanation": "The source says the team continued despite the heavy rain.",
+      "evidenceText": "Despite the heavy rain, the team continued",
+      "groundedInSource": true
+    },
+    {
+      "type": "short_answer",
+      "skill": "grammar",
+      "targetConceptLabels": ["despite + noun/V-ing"],
+      "prompt": "Rewrite with despite",
+      "payload": {
+        "type": "short_answer",
+        "prompt": "Rewrite: Although it rained, we played. Use despite.",
+        "acceptedAnswers": [
+          "Despite the rain, we played.",
+          "Despite raining, we played."
+        ],
+        "allowAiGrade": true
+      },
+      "explanation": "Change the clause to a noun phrase after despite."
+    }
+  ]
+}
