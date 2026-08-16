@@ -198,3 +198,19 @@ Exercise format is chosen to serve the learning target rather than being the pri
 **Date:** 2026-08-16
 
 Automated tests use provider fixtures/mocks. Real endpoints can be used manually or in explicitly opt-in integration checks, but standard CI must be deterministic and not require an API key or incur model cost.
+
+## D-018 — Credential storage medium for remember-on-device
+
+**Status:** Accepted  
+**Date:** 2026-08-16
+
+Session credentials default to in-memory + `sessionStorage` mirror. Remember-on-device uses `localStorage` under a dedicated key prefix, never IndexedDB provider profile rows and never export payloads.
+
+Rationale: keeps secrets out of the Dexie schema/export surface while remaining simple for a backend-free PWA. This is convenience storage, not server-grade secret management (see D-008).
+
+## D-019 — OpenAI-compatible adapter is a small fetch client
+
+**Status:** Accepted  
+**Date:** 2026-08-16
+
+M0 implements Chat Completions via a small `fetch` + `AbortController` adapter under `src/ai/providers/openai-compatible/`. The official OpenAI SDK is not required and must not become an architectural dependency for custom base URLs or browser-only BYOK.

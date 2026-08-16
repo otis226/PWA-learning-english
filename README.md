@@ -15,9 +15,34 @@ Users can paste text, vocabulary lists, or a topic, choose what they want to lea
 - IndexedDB as the primary local database
 - User-configurable OpenAI-compatible base URL, API key, and model
 - Chat Completions as the compatibility baseline; other protocols are capability-driven
-- FSRS for spaced repetition
+- FSRS for spaced repetition (later milestone)
 - Versioned JSON export/import from day one
 - Google Drive backup later; cloud is not the primary database
+
+## Requirements
+
+- Node.js >= 20
+- pnpm (recommended: `npm install -g pnpm`)
+
+## Scripts
+
+```bash
+pnpm install
+pnpm dev          # local dev server
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm preview      # preview production build (PWA/service worker)
+```
+
+## App routes (M0)
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Home shell |
+| `/settings/ai` | AI provider profile, credential mode, test connection |
+| `/settings/data` | Storage persistence status, export download, import validate/preview |
 
 ## Project docs
 
@@ -29,4 +54,4 @@ Read these before implementation:
 4. `docs/CURRENT_FOCUS.md`
 5. `docs/DECISIONS.md`
 
-The repository is currently in **Milestone M0 — Foundation and product contracts**.
+**M0 — Foundation and product contracts** is complete. Active work is **M1 — Source intake and AI analysis**.

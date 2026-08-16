@@ -25,7 +25,7 @@ Target checkpoints:
 
 # M0 — Foundation and product contracts
 
-**Status:** `[~] ACTIVE`
+**Status:** `[x] COMPLETE` (exit gate passed 2026-08-16)
 
 ## Objective
 
@@ -35,13 +35,13 @@ Create a stable local-first application foundation and contracts so later agents
 
 ### M0.1 Repository and toolchain
 
-- [ ] Initialize React + TypeScript + Vite application.
-- [ ] Use pnpm and require Node.js >= 20.
-- [ ] Add formatting/linting/typecheck scripts.
-- [ ] Add Vitest and React Testing Library.
-- [ ] Add Playwright dependency only if a first meaningful E2E smoke flow is created in this milestone; otherwise defer to M1/M2.
-- [ ] Configure Vite PWA integration and basic manifest.
-- [ ] Create installable app shell with an explicit update/offline-ready UX rather than invisible service-worker behavior.
+- [x] Initialize React + TypeScript + Vite application.
+- [x] Use pnpm and require Node.js >= 20.
+- [x] Add formatting/linting/typecheck scripts.
+- [x] Add Vitest and React Testing Library.
+- [x] Add Playwright dependency only if a first meaningful E2E smoke flow is created in this milestone; otherwise defer to M1/M2.
+- [x] Configure Vite PWA integration and basic manifest.
+- [x] Create installable app shell with an explicit update/offline-ready UX rather than invisible service-worker behavior.
 
 ### M0.2 Source boundaries
 
@@ -66,17 +66,17 @@ src/
   shared/
 ```
 
-- [ ] React components do not directly call IndexedDB tables or raw provider `fetch()` calls.
-- [ ] Domain-facing interfaces exist for AI gateway and repositories.
+- [x] React components do not directly call IndexedDB tables or raw provider `fetch()` calls.
+- [x] Domain-facing interfaces exist for AI gateway and repositories.
 
 ### M0.3 IndexedDB foundation
 
-- [ ] Add Dexie.
-- [ ] Define DB version 1 with only tables needed by M0/M1; do not prematurely create every future table.
-- [ ] Establish migration conventions and migration test pattern.
-- [ ] Add local database health/open test.
-- [ ] Add browser storage status service using `navigator.storage.persisted()` when supported.
-- [ ] Add explicit persistent-storage request using `navigator.storage.persist()` behind sensible UX.
+- [x] Add Dexie.
+- [x] Define DB version 1 with only tables needed by M0/M1; do not prematurely create every future table.
+- [x] Establish migration conventions and migration test pattern.
+- [x] Add local database health/open test.
+- [x] Add browser storage status service using `navigator.storage.persisted()` when supported.
+- [x] Add explicit persistent-storage request using `navigator.storage.persist()` behind sensible UX.
 
 ### M0.4 AI provider profile and credential boundary
 
@@ -84,20 +84,20 @@ Implement provider configuration without implementing learning generation yet.
 
 Provider profile fields:
 
-- [ ] id;
-- [ ] display name;
-- [ ] base URL;
-- [ ] model free-text value;
-- [ ] protocol = Chat Completions initially;
-- [ ] optional capability overrides only where needed.
+- [x] id;
+- [x] display name;
+- [x] base URL;
+- [x] model free-text value;
+- [x] protocol = Chat Completions initially;
+- [x] optional capability overrides only where needed.
 
 Credential behavior:
 
-- [ ] API key stored separately from exportable provider profile data;
-- [ ] session-only mode supported;
-- [ ] remember-on-device is explicit opt-in;
-- [ ] no secrets logged;
-- [ ] no credentials included in export.
+- [x] API key stored separately from exportable provider profile data;
+- [x] session-only mode supported;
+- [x] remember-on-device is explicit opt-in;
+- [x] no secrets logged;
+- [x] no credentials included in export.
 
 ### M0.5 OpenAI-compatible HTTP adapter
 
@@ -107,45 +107,45 @@ Implement the minimum portable provider adapter:
 POST {normalizedBaseUrl}/chat/completions
 ```
 
-- [ ] Normalize base URL/trailing slash safely.
-- [ ] Do not require `/models`.
-- [ ] Implement request timeout/abort.
-- [ ] Parse provider error bodies defensively.
-- [ ] Distinguish at least: network/CORS-like failure, unauthorized, model/not-found/provider error, invalid response.
-- [ ] Add a `Test connection` action using a minimal inexpensive request.
-- [ ] All tests use mocks/fixtures, not paid live endpoints.
+- [x] Normalize base URL/trailing slash safely.
+- [x] Do not require `/models`.
+- [x] Implement request timeout/abort.
+- [x] Parse provider error bodies defensively.
+- [x] Distinguish at least: network/CORS-like failure, unauthorized, model/not-found/provider error, invalid response.
+- [x] Add a `Test connection` action using a minimal inexpensive request.
+- [x] All tests use mocks/fixtures, not paid live endpoints.
 
 ### M0.6 Structured-data compatibility contract
 
 Create the interfaces and runtime validator utilities needed later.
 
-- [ ] Zod boundary validation.
-- [ ] Capability representation for JSON Schema / JSON object mode.
-- [ ] Fallback architecture documented in code.
-- [ ] Bounded repair retry contract exists but does not need full learning prompts yet.
-- [ ] Invalid model output can never be silently stored as domain data.
+- [x] Zod boundary validation.
+- [x] Capability representation for JSON Schema / JSON object mode.
+- [x] Fallback architecture documented in code.
+- [x] Bounded repair retry contract exists but does not need full learning prompts yet.
+- [x] Invalid model output can never be silently stored as domain data.
 
 ### M0.7 Minimal app UX
 
 Routes/views:
 
-- [ ] Home shell;
-- [ ] Settings > AI Provider;
-- [ ] Settings > Data/Storage skeleton.
+- [x] Home shell;
+- [x] Settings > AI Provider;
+- [x] Settings > Data/Storage skeleton.
 
 The UI should already expose:
 
-- [ ] provider connection state;
-- [ ] model/base URL configuration;
-- [ ] storage persistence state where browser supports it;
-- [ ] clearly worded browser-key warning.
+- [x] provider connection state;
+- [x] model/base URL configuration;
+- [x] storage persistence state where browser supports it;
+- [x] clearly worded browser-key warning.
 
 ### M0.8 Backup contract skeleton
 
-- [ ] Define versioned export envelope and Zod schema.
-- [ ] Implement export of current non-secret DB data even if there is little data yet.
-- [ ] Confirm API key is absent from generated export.
-- [ ] Import may be read/validate-only in M0 if destructive restore UX is deferred.
+- [x] Define versioned export envelope and Zod schema.
+- [x] Implement export of current non-secret DB data even if there is little data yet.
+- [x] Confirm API key is absent from generated export.
+- [x] Import may be read/validate-only in M0 if destructive restore UX is deferred.
 
 ## M0 exit gate
 
@@ -175,7 +175,7 @@ Do not start M1 before this gate passes.
 
 # M1 — Source intake and AI analysis vertical slice
 
-**Status:** `[ ]`
+**Status:** `[~] ACTIVE`
 
 ## Objective
 
