@@ -30,6 +30,7 @@ The user explicitly activated the broader product scope after RC1.1: flashcards,
 - [x] IndexedDB v3 migration for `skillAttempts`
 - [x] export/import schema v3 with multimodal history and no credentials
 - [x] route code-splitting so the production entry chunk remains below the Vite 500 kB warning threshold
+- [x] app-first shell: compact app bar, persistent bottom tabs, daily-plan Today screen, focused Study/session screens
 
 ## Exit gate
 

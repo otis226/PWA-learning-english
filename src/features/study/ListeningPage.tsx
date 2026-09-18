@@ -66,16 +66,17 @@ export function ListeningPage() {
   if (!packId) return <MissingPack title="Listening" />
 
   return (
-    <div className="page skill-page">
-      <section className="page-heading">
-        <div><p className="eyebrow">Listen & type</p><h1>Train your ear before your eyes.</h1><p className="lead">The target stays hidden until you submit. Playback uses the English voice available on your device.</p></div>
-        <Link className="btn btn-secondary" to="/study">Study studio</Link>
-      </section>
+    <div className="page app-screen skill-page">
+      <header className="session-header">
+        <Link to="/study" className="session-back" aria-label="Back to Study">‹</Link>
+        <div><h1>Listening</h1><small>{index + 1} of {targets.length || 0}</small></div>
+        <span className="session-spacer" />
+      </header>
       {!synthesisReady ? <div className="banner warning">Speech synthesis is not available in this browser. Use Chrome/Edge/Safari with system voices enabled.</div> : null}
       {error ? <div className="banner error">{error}</div> : null}
       {!target ? <div className="card empty-state"><strong>No listening targets in this pack.</strong><span>Generate a pack with concepts/evidence first.</span></div> : (
         <section className="practice-stage">
-          <div className="practice-topline"><span>{index + 1} / {targets.length}</span><span>{target.concept.kind}</span></div>
+          <div className="practice-topline"><span>Listen & type</span><span>{target.concept.kind}</span></div>
           <div className="progress-track"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
           <div className="skill-card listening-card">
             <span className="mode-code large" aria-hidden="true">耳</span>

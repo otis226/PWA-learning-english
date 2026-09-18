@@ -16,55 +16,54 @@ const ReadingPage = lazy(() => import('../features/study/ReadingPage').then((mod
 const StudyHubPage = lazy(() => import('../features/study/StudyHubPage').then((module) => ({ default: module.StudyHubPage })))
 
 const primaryItems = [
-  { to: '/', label: 'Today', end: true },
-  { to: '/study', label: 'Study' },
-  { to: '/learn/new', label: 'Create' },
-  { to: '/memory', label: 'Memory' },
+  { to: '/', label: 'Today', glyph: '⌂', end: true },
+  { to: '/study', label: 'Study', glyph: 'Aa' },
+  { to: '/learn/new', label: 'Create', glyph: '+' },
+  { to: '/memory', label: 'Memory', glyph: '∞' },
 ] as const
 
 export function App() {
   return (
     <div className="app-shell">
-      <header className="app-header">
-        <NavLink to="/" className="brand" aria-label="English Learning Studio home">
-          <span className="brand-mark">EL</span>
-          <span className="brand-copy"><strong>English Learning Studio</strong><small>Local-first · AI optional</small></span>
+      <header className="app-topbar">
+        <NavLink to="/" className="app-identity" aria-label="English Learning Studio home">
+          <span className="app-logo">E</span>
+          <span>English</span>
         </NavLink>
-        <nav className="nav-links desktop-nav" aria-label="Primary">
-          {primaryItems.map((item) => <NavLink key={item.to} to={item.to} end={'end' in item ? item.end : false}>{item.label}</NavLink>)}
-          <NavLink to="/review">Review</NavLink>
-          <NavLink to="/settings/ai">Settings</NavLink>
-        </nav>
+        <div className="app-top-actions">
+          <NavLink to="/review" className="icon-button" aria-label="Review due cards">↻</NavLink>
+          <NavLink to="/settings/ai" className="icon-button" aria-label="Settings">⚙</NavLink>
+        </div>
       </header>
+
       <main className="app-main">
-        <Suspense fallback={<div className="route-loading" role="status">Loading study space…</div>}>
+        <Suspense fallback={<div className="route-loading" role="status">Loading…</div>}>
           <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/study" element={<StudyHubPage />} />
-          <Route path="/study/listening" element={<ListeningPage />} />
-          <Route path="/study/pronunciation" element={<PronunciationPage />} />
-          <Route path="/study/reading" element={<ReadingPage />} />
-          <Route path="/learn/new" element={<NewSourcePage />} />
-          <Route path="/memory" element={<MemoryPage />} />
-          <Route path="/packs/:packId" element={<PackDetailPage />} />
-          <Route path="/practice/:sessionId" element={<PracticeSessionPage />} />
-          <Route path="/review" element={<ReviewPage />} />
-          <Route path="/settings/ai" element={<AiSettingsPage />} />
-          <Route path="/settings/data" element={<DataSettingsPage />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/study" element={<StudyHubPage />} />
+            <Route path="/study/listening" element={<ListeningPage />} />
+            <Route path="/study/pronunciation" element={<PronunciationPage />} />
+            <Route path="/study/reading" element={<ReadingPage />} />
+            <Route path="/learn/new" element={<NewSourcePage />} />
+            <Route path="/memory" element={<MemoryPage />} />
+            <Route path="/packs/:packId" element={<PackDetailPage />} />
+            <Route path="/practice/:sessionId" element={<PracticeSessionPage />} />
+            <Route path="/review" element={<ReviewPage />} />
+            <Route path="/settings/ai" element={<AiSettingsPage />} />
+            <Route path="/settings/data" element={<DataSettingsPage />} />
           </Routes>
         </Suspense>
       </main>
-      <nav className="mobile-nav" aria-label="Mobile primary">
-        {primaryItems.map((item) => <NavLink key={item.to} to={item.to} end={'end' in item ? item.end : false}><span>{mobileGlyph(item.label)}</span><small>{item.label}</small></NavLink>)}
+
+      <nav className="mobile-nav app-tabbar" aria-label="Primary">
+        {primaryItems.map((item) => (
+          <NavLink key={item.to} to={item.to} end={'end' in item ? item.end : false}>
+            <span>{item.glyph}</span>
+            <small>{item.label}</small>
+          </NavLink>
+        ))}
       </nav>
       <PwaUpdateBanner />
     </div>
   )
-}
-
-function mobileGlyph(label: string) {
-  if (label === 'Today') return '●'
-  if (label === 'Study') return 'Aa'
-  if (label === 'Create') return '+'
-  return '∞'
 }

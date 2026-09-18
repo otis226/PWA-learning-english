@@ -53,13 +53,13 @@ export function PronunciationPage() {
   if (!packId) return <div className="page"><h1>Pronunciation</h1><div className="card empty-state"><strong>Choose a pack first.</strong><Link className="btn btn-primary" to="/study">Open Study studio</Link></div></div>
 
   return (
-    <div className="page skill-page">
-      <section className="page-heading"><div><p className="eyebrow">Pronunciation & shadowing</p><h1>Hear it. Say it. Compare it.</h1><p className="lead">Speech recognition gives a practical transcript match, not a phonetic-accent score. Use it as feedback, not as a judgment of your accent.</p></div><Link className="btn btn-secondary" to="/study">Study studio</Link></section>
+    <div className="page app-screen skill-page">
+      <header className="session-header"><Link to="/study" className="session-back" aria-label="Back to Study">‹</Link><div><h1>Pronunciation</h1><small>{index + 1} of {targets.length || 0}</small></div><span className="session-spacer" /></header>
       {!recognitionReady ? <div className="banner warning">Speech recognition is unavailable here. Playback still works; Chrome on Android/desktop usually offers the best support.</div> : null}
       {error ? <div className="banner error">{error}</div> : null}
       {!target ? <div className="card empty-state"><strong>No pronunciation targets found.</strong></div> : (
         <section className="practice-stage">
-          <div className="practice-topline"><span>{index + 1} / {targets.length}</span><span>{target.concept.kind}</span></div>
+          <div className="practice-topline"><span>Listen · shadow · speak</span><span>{target.concept.kind}</span></div>
           <div className="skill-card pronunciation-card">
             <p className="eyebrow">Target</p><h2>{target.text}</h2><p className="muted">{target.concept.definition ?? target.concept.canonicalLabel}</p>
             <div className="row centered"><button className="btn btn-secondary" type="button" disabled={!synthesisReady} onClick={() => void speakEnglish(target.text, { rate: 0.82 })}>Hear slowly</button><button className="btn btn-secondary" type="button" disabled={!synthesisReady} onClick={() => void speakEnglish(target.text, { rate: 1 })}>Hear natural</button><button className="btn btn-primary" type="button" disabled={!recognitionReady || busy} onClick={() => void record()}>{busy ? 'Listening…' : 'Speak now'}</button></div>

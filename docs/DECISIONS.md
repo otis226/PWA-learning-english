@@ -336,3 +336,23 @@ Core study flows must remain usable when recognition is unavailable. Voice quali
 Export schema v3 adds `skillAttempts` so listening, pronunciation and reading history survive backup/restore. Credentials remain excluded.
 
 Legacy v1/v2 exports are migrated by filling the new collection with an empty array; legacy IndexedDB databases migrate through Dexie v3 without destroying prior learning state.
+
+## D-030 — The product shell is app-first, not website-first
+
+**Status:** Accepted
+**Date:** 2026-09-19
+
+The installed PWA should feel like a daily-use mobile application rather than a responsive marketing/dashboard website.
+
+The default interaction model is:
+
+```text
+compact top app bar
+persistent bottom tab navigation
+screen-sized task flows
+short action/list rows
+focused study sessions
+mobile-width application canvas that expands conservatively on desktop
+```
+
+Avoid large marketing hero copy, desktop-first navigation bars, wide dashboard grids, and repeated explanatory cards on primary learning screens. Desktop is a wider presentation of the same application shell, not a separate website layout.

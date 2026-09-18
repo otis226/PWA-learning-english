@@ -53,15 +53,13 @@ describe('HomePage', () => {
         </AppServicesProvider>
       </MemoryRouter>,
     )
-    expect(
-      screen.getByRole('heading', { name: /build english that stays with you/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /^today$/i })).toBeInTheDocument()
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: /create with ai/i })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: /create lesson/i })).toHaveAttribute(
         'href',
         '/learn/new',
       )
     })
-    expect(screen.getByRole('link', { name: /long-term review/i })).toHaveAttribute('href', '/review')
+    expect(screen.getByRole('link', { name: /start review/i })).toHaveAttribute('href', '/review')
   })
 })

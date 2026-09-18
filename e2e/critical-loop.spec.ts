@@ -10,7 +10,7 @@ test.describe('Learning Studio critical loop', () => {
     await installMockProvider(page)
 
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: /build english that stays with you/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /^today$/i })).toBeVisible()
 
     await page.goto('/settings/ai')
     await page.getByLabel('Display name').fill('E2E Mock Provider')
@@ -58,25 +58,23 @@ test.describe('Learning Studio critical loop', () => {
     }
 
     await page.goto('/study')
-    await expect(page.getByRole('heading', { name: /choose the skill, keep one memory/i })).toBeVisible()
-    const firstPack = page.locator('.pack-card').first()
-    await expect(firstPack).toBeVisible()
-    await firstPack.getByRole('link', { name: /listening/i }).click()
-    await expect(page.getByRole('heading', { name: /train your ear before your eyes/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /^study$/i })).toBeVisible()
+    await page.getByRole('link', { name: /listening/i }).click()
+    await expect(page.getByRole('heading', { name: /^listening$/i })).toBeVisible()
     await page.getByLabel(/type what you hear/i).fill('Despite the heavy rain')
     await page.getByRole('button', { name: /check dictation/i }).click()
     await expect(page.getByText(/100% match/i)).toBeVisible()
 
     await page.goto('/study')
-    await page.locator('.pack-card').first().getByRole('link', { name: /pronunciation/i }).click()
-    await expect(page.getByRole('heading', { name: /hear it\. say it\. compare it/i })).toBeVisible()
+    await page.getByRole('link', { name: /pronunciation/i }).click()
+    await expect(page.getByRole('heading', { name: /^pronunciation$/i })).toBeVisible()
 
     await page.goto('/memory')
     await expect(page.getByRole('heading', { name: /your learning should survive the chat/i })).toBeVisible()
     await expect(page.getByLabel('Listening attempts')).toContainText('1')
 
     await page.goto('/')
-    await expect(page.getByRole('link', { name: /^open$/i }).first()).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByRole('link', { name: /e2e connectors/i }).first()).toBeVisible({ timeout: 10_000 })
 
     await page.goto('/review')
     await expect(page.getByRole('heading', { name: /due review/i })).toBeVisible()
@@ -116,7 +114,7 @@ test.describe('Learning Studio critical loop', () => {
     await expect(page.getByText(/restored/i)).toBeVisible({ timeout: 15_000 })
 
     await page.goto('/')
-    await expect(page.getByRole('link', { name: /open/i }).first()).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('link', { name: /e2e connectors/i }).first()).toBeVisible({ timeout: 15_000 })
   })
 })
 

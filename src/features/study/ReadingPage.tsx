@@ -43,15 +43,14 @@ export function ReadingPage() {
   const minutes = Math.max(1, Math.ceil(wordCount / 190))
 
   return (
-    <div className={`page reading-page ${focus ? 'reading-focus' : ''}`}>
-      <section className="page-heading"><div><p className="eyebrow">Reading room</p><h1>Read for meaning, not for speed.</h1><p className="lead">Use read-aloud only when useful. Your original source stays local and can be studied offline.</p></div><Link className="btn btn-secondary" to="/study">Study studio</Link></section>
+    <div className={`page app-screen reading-page ${focus ? 'reading-focus' : ''}`}>
+      <header className="session-header"><Link to="/study" className="session-back" aria-label="Back to Study">‹</Link><div><h1>Reading</h1><small>{wordCount} words · ~{minutes} min</small></div><button className="session-text-action" type="button" onClick={() => setFocus((value) => !value)}>{focus ? 'Done' : 'Focus'}</button></header>
       {recent.length === 0 ? <div className="card empty-state"><strong>No reading material yet.</strong><Link className="btn btn-primary" to="/learn/new">Create material</Link></div> : (
         <>
           <section className="reading-toolbar card">
             <label>Material <select value={source?.id ?? ''} onChange={(e) => { const id = e.target.value; const next = recent.find((row) => row.id === id) ?? null; setSource(next); openedAt.current = Date.now(); setDone(false); stopSpeaking() }}>{recent.map((row) => <option key={row.id} value={row.id}>{row.title}</option>)}</select></label>
             <span>{wordCount} words · ~{minutes} min</span>
             <label>Voice speed <select value={rate} onChange={(e) => setRate(Number(e.target.value))}><option value={0.78}>Slow</option><option value={0.92}>Study</option><option value={1}>Natural</option><option value={1.12}>Fast</option></select></label>
-            <button className="btn btn-secondary" type="button" onClick={() => setFocus((value) => !value)}>{focus ? 'Exit focus' : 'Focus mode'}</button>
           </section>
           {source ? <article className="reading-sheet"><div className="reading-meta"><span className="badge">{source.type}</span><div className="row"><button className="btn btn-secondary" type="button" disabled={!synthesisReady} onClick={() => void speakEnglish(source.normalizedContent, { rate })}>Read aloud</button><button className="btn btn-secondary" type="button" onClick={stopSpeaking}>Stop</button></div></div><h2>{source.title}</h2><div className="reading-copy">{paragraphs(source.normalizedContent).map((paragraph, index) => <p key={`${source.id}-${index}`} onDoubleClick={() => void speakEnglish(paragraph, { rate })}>{paragraph}</p>)}</div><div className="reading-finish"><button className="btn btn-primary" type="button" disabled={done} onClick={() => void markComplete()}>{done ? 'Reading saved' : 'Mark reading complete'}</button><span className="muted">Double-click a paragraph to hear just that paragraph.</span></div></article> : null}
         </>
