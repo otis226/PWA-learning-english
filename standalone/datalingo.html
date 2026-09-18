@@ -88,13 +88,13 @@
   <div class="sheet">
     <div class="sheethead"><div><div class="eyebrow">Google Gemini</div><h2>Cấu hình AI</h2></div><button class="close" data-close-settings>✕</button></div>
     <div class="formstack">
-      <div class="field"><label>Gemini API key</label><input class="control" id="api-key" type="password" autocomplete="off" placeholder="AIzaSy…" /></div>
-      <label class="checkrow"><input id="remember-key" type="checkbox" /><span>Nhớ API key trên thiết bị này. Nếu tắt, khóa chỉ sống trong phiên trình duyệt. Không bao giờ đưa API key vào file backup.</span></label>
+      <div class="field"><label>Gemini Auth / API key</label><input class="control" id="api-key" type="password" autocomplete="off" placeholder="Dán key từ Google AI Studio" /><div class="tiny muted">Google đã chuyển sang Auth key trong 2026. <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank" rel="noopener" style="color:#ac9eff">Xem hướng dẫn chính thức</a>.</div></div>
+      <label class="checkrow"><input id="remember-key" type="checkbox" /><span>Nhớ key trên thiết bị này. Nếu tắt, key chỉ sống trong phiên trình duyệt. Không bao giờ đưa key vào file backup hoặc Git.</span></label>
       <div class="settingsrow">
         <div class="field"><label>Model</label><input class="control" id="model-name" value="gemini-3.8-flash" /></div>
         <div class="field"><label>Thinking</label><select class="control" id="thinking-level"><option value="low">Low — nhanh</option><option value="medium">Medium</option><option value="high">High</option></select></div>
       </div>
-      <div class="apihealth" id="api-health">Chưa kiểm tra kết nối. DataLingo chỉ gửi khóa trực tiếp tới Google Gemini API khi bạn yêu cầu tạo nội dung.</div>
+      <div class="apihealth" id="api-health">Chưa kiểm tra kết nối. DataLingo gửi key trực tiếp từ trình duyệt tới Google chỉ khi bạn gọi AI. Kiểu BYOK này phù hợp dùng cá nhân; không nên public/share một key có giá trị cao.</div>
       <div class="ctarow"><button class="btn secondary" id="test-api">Kiểm tra API</button><button class="btn primary" id="save-settings">Lưu cài đặt</button></div>
       <div style="height:1px;background:var(--line);margin:4px 0"></div>
       <div class="eyebrow">Dữ liệu học</div>
@@ -119,7 +119,7 @@
   const esc = (s='') => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const clamp = (n,min,max) => Math.min(max,Math.max(min,n));
   const DAY = 86400000;
-  const APP_VERSION = '3.0.0-standalone';
+  const APP_VERSION = '3.1.0-standalone';
   const DB_NAME = 'datalingo-v3';
   const KEY_SESSION = 'datalingo.gemini.session';
   const KEY_LOCAL = 'datalingo.gemini.remembered';
@@ -224,8 +224,8 @@
   async function geminiJSON(prompt,schema,signal){
     const key=getApiKey();if(!key){openSettings();throw new Error('Hãy nhập Gemini API key trước.')}
     const model=(state.settings.model||'gemini-3.8-flash').trim();
-    const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-    const payload={systemInstruction:{parts:[{text:'Return only data that satisfies the provided structured output schema. Be concise, accurate, and source-grounded.'}]},contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json',responseJsonSchema:schema,thinkingConfig:{thinkingLevel:state.settings.thinking||'low'}}};
+    const url='https://generativelanguage.googleapis.com/v1beta/interactions';
+    const payload={model,input:prompt,system_instruction:'Return only data that satisfies the provided structured output schema. Be concise, accurate, and source-grounded.',generation_config:{thinking_level:state.settings.thinking||'low'},response_format:{type:'text',mime_type:'application/json',schema},store:false};
     let lastError;
     for(let attempt=0;attempt<3;attempt++){
       if(signal?.aborted)throw new DOMException('Aborted','AbortError');
@@ -233,7 +233,7 @@
         const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(payload),signal});
         const raw=await res.text();let data={};try{data=raw?JSON.parse(raw):{}}catch{}
         if(!res.ok){const err=new Error(data?.error?.message||`Gemini HTTP ${res.status}`);err.status=res.status;const retryAfter=Number(res.headers.get('retry-after'))||0;err.retryAfter=retryAfter;throw err}
-        const text=data?.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';if(!text)throw new Error('Gemini trả về nội dung rỗng.');
+        const text=(data?.steps||[]).filter(s=>s?.type==='model_output').flatMap(s=>s?.content||[]).filter(c=>c?.type==='text'&&typeof c.text==='string').map(c=>c.text).join('');if(data?.status&&data.status!=='completed')throw new Error(`Gemini chưa hoàn tất yêu cầu (${data.status}).`);if(!text)throw new Error('Gemini trả về nội dung rỗng.');
         return JSON.parse(text);
       }catch(e){
         lastError=e;if(e.name==='AbortError')throw e;
