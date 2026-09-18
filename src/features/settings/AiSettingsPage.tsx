@@ -12,7 +12,7 @@ type FormState = {
 }
 
 const emptyForm: FormState = {
-  displayName: '',
+  displayName: 'My AI',
   baseUrl: 'https://api.openai.com/v1',
   model: '',
   apiKey: '',
@@ -131,21 +131,8 @@ export function AiSettingsPage() {
   }
 
   return (
-    <div className="page">
-      <h1>AI Provider</h1>
-      <p className="lead">
-        Configure any OpenAI-compatible Chat Completions endpoint. Model names are free
-        text — listing <code>/models</code> is not required.
-      </p>
-
-      <section className="card banner warning" role="note">
-        <strong>Browser key warning (BYOK)</strong>
-        <p className="muted" style={{ margin: '0.5rem 0 0' }}>
-          API keys entered here are available to JavaScript in this browser. Prefer
-          session-only storage. Use personal or low-risk keys — not high-value shared
-          production secrets. Keys are never included in exports.
-        </p>
-      </section>
+    <div className="page app-screen settings-screen">
+      <header className="screen-header"><div><p>Content generation</p><h1>AI</h1></div></header>
 
       {message ? (
         <div className={`banner ${message.kind === 'success' ? 'success' : message.kind === 'error' ? 'error' : 'info'}`}>
@@ -153,36 +140,7 @@ export function AiSettingsPage() {
         </div>
       ) : null}
 
-      <form className="card stack" onSubmit={(e) => void onSubmit(e)}>
-        <h2>{view?.profile ? 'Edit provider profile' : 'Create provider profile'}</h2>
-
-        <div className="field">
-          <label htmlFor="displayName">Display name</label>
-          <input
-            id="displayName"
-            name="displayName"
-            type="text"
-            autoComplete="off"
-            value={form.displayName}
-            onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
-            required
-          />
-        </div>
-
-        <div className="field">
-          <label htmlFor="baseUrl">Base URL</label>
-          <input
-            id="baseUrl"
-            name="baseUrl"
-            type="url"
-            autoComplete="off"
-            placeholder="https://api.openai.com/v1"
-            value={form.baseUrl}
-            onChange={(e) => setForm((f) => ({ ...f, baseUrl: e.target.value }))}
-            required
-          />
-        </div>
-
+      <form className="provider-setup" onSubmit={(e) => void onSubmit(e)}>
         <div className="field">
           <label htmlFor="model">Model (free text)</label>
           <input
@@ -212,6 +170,35 @@ export function AiSettingsPage() {
           />
         </div>
 
+        <details className="provider-advanced">
+          <summary>Advanced endpoint</summary>
+          <div className="field">
+            <label htmlFor="displayName">Display name</label>
+            <input
+              id="displayName"
+              name="displayName"
+              type="text"
+              autoComplete="off"
+              value={form.displayName}
+              onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="baseUrl">Base URL</label>
+            <input
+              id="baseUrl"
+              name="baseUrl"
+              type="url"
+              autoComplete="off"
+              placeholder="https://api.openai.com/v1"
+              value={form.baseUrl}
+              onChange={(e) => setForm((f) => ({ ...f, baseUrl: e.target.value }))}
+              required
+            />
+          </div>
+        </details>
+
         <label className="checkbox-field" htmlFor="rememberOnDevice">
           <input
             id="rememberOnDevice"
@@ -227,7 +214,7 @@ export function AiSettingsPage() {
           </span>
         </label>
 
-        <div className="row">
+        <div className="provider-actions">
           <button type="submit" className="btn btn-primary" disabled={saving}>
             {saving ? 'Saving…' : 'Save provider'}
           </button>
@@ -242,44 +229,20 @@ export function AiSettingsPage() {
         </div>
       </form>
 
-      <section className="card stack">
-        <h2>Connection state</h2>
-        <div className="status-grid">
-          <div className="status-item">
-            <strong>Active profile</strong>
-            <span className="muted">{view?.profile?.displayName ?? 'None'}</span>
-          </div>
-          <div className="status-item">
-            <strong>Model</strong>
-            <span className="muted">{view?.profile?.model ?? '—'}</span>
-          </div>
-          <div className="status-item">
-            <strong>Credential</strong>
-            <span className="muted">
-              {view?.hasCredential
-                ? view.credentialPersistence === 'remember'
-                  ? 'Present (remembered on device)'
-                  : 'Present (session)'
-                : 'Missing'}
-            </span>
-          </div>
-          <div className="status-item">
-            <strong>Last test</strong>
-            <span className="muted">
-              {!connection
-                ? 'Not run'
-                : connection.ok
-                  ? `OK${connection.contentPreview ? `: ${connection.contentPreview}` : ''}`
-                  : `${connection.category}${connection.status ? ` (${connection.status})` : ''}`}
-            </span>
-          </div>
-        </div>
+      <section className="provider-status">
+        <div><span className={`provider-dot ${view?.hasCredential ? 'ready' : ''}`} /><strong>{view?.profile?.model ?? 'Not connected'}</strong></div>
+        <span>{view?.hasCredential ? (view.credentialPersistence === 'remember' ? 'Key saved on device' : 'Key for this session') : 'Add a key to generate lessons'}</span>
         {connection && !connection.ok && connection.providerMessage ? (
           <p className="muted" style={{ margin: 0 }}>
             Provider message: {connection.providerMessage}
           </p>
         ) : null}
       </section>
+
+      <details className="provider-security-note">
+        <summary>About API keys</summary>
+        <p>Keys entered here are available to JavaScript in this browser and are never included in learning-data exports. Session-only storage is the default.</p>
+      </details>
     </div>
   )
 }

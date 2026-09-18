@@ -356,3 +356,22 @@ mobile-width application canvas that expands conservatively on desktop
 ```
 
 Avoid large marketing hero copy, desktop-first navigation bars, wide dashboard grids, and repeated explanatory cards on primary learning screens. Desktop is a wider presentation of the same application shell, not a separate website layout.
+
+## D-031 — Primary learning flows minimize input and scrolling
+
+**Status:** Accepted
+**Date:** 2026-09-19
+
+Daily-use learning screens should not behave like configuration forms.
+
+Default UX rules:
+
+- one primary action per screen;
+- infer or default title, learning goal, provider metadata, and other secondary fields where safe;
+- use presets/segmented choices before free-form configuration;
+- put secondary controls behind progressive disclosure such as `Advanced` / `Learning focus`;
+- keep the primary CTA visible without requiring scroll when practical;
+- hide global navigation during focused create/practice sessions when the screen provides its own close/back control;
+- keep long configuration forms limited to infrequent settings surfaces.
+
+The Create flow therefore defaults to preset/topic/text/words + one composer + Generate; AI provider setup defaults to Model + API key, with endpoint metadata under Advanced.

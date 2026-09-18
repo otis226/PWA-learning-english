@@ -13,8 +13,6 @@ test.describe('Learning Studio critical loop', () => {
     await expect(page.getByRole('heading', { name: /^today$/i })).toBeVisible()
 
     await page.goto('/settings/ai')
-    await page.getByLabel('Display name').fill('E2E Mock Provider')
-    await page.getByLabel('Base URL').fill('https://mock.local/v1')
     await page.getByLabel(/model \(free text\)/i).fill('mock-e2e-model')
     await page.getByLabel(/api key/i).fill('sk-e2e-test-key-not-real')
     await page.getByRole('button', { name: /save provider/i }).click()
@@ -24,8 +22,7 @@ test.describe('Learning Studio critical loop', () => {
     await page.getByLabel(/paste content/i).fill(
       'Despite the heavy rain, the team continued the match. Although fans left early, players stayed focused.',
     )
-    await page.getByLabel(/what do you want to learn/i).selectOption('mixed')
-    await page.getByRole('button', { name: /analyze with ai/i }).click()
+    await page.getByRole('button', { name: /generate lesson/i }).click()
 
     await expect(page.getByText(/concepts/i).first()).toBeVisible({ timeout: 20_000 })
 
@@ -70,7 +67,7 @@ test.describe('Learning Studio critical loop', () => {
     await expect(page.getByRole('heading', { name: /^pronunciation$/i })).toBeVisible()
 
     await page.goto('/memory')
-    await expect(page.getByRole('heading', { name: /your learning should survive the chat/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /^memory$/i })).toBeVisible()
     await expect(page.getByLabel('Listening attempts')).toContainText('1')
 
     await page.goto('/')

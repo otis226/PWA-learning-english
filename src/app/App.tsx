@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { NavLink, Route, Routes } from 'react-router-dom'
+import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { PwaUpdateBanner } from './pwa-update-banner'
 
 const HomePage = lazy(() => import('../features/home/HomePage').then((module) => ({ default: module.HomePage })))
@@ -23,9 +23,17 @@ const primaryItems = [
 ] as const
 
 export function App() {
+  const location = useLocation()
+  const immersive =
+    location.pathname === '/learn/new' ||
+    location.pathname.startsWith('/study/listening') ||
+    location.pathname.startsWith('/study/pronunciation') ||
+    location.pathname.startsWith('/study/reading') ||
+    location.pathname.startsWith('/practice/')
+
   return (
     <div className="app-shell">
-      <header className="app-topbar">
+      {!immersive ? <header className="app-topbar">
         <NavLink to="/" className="app-identity" aria-label="English Learning Studio home">
           <span className="app-logo">E</span>
           <span>English</span>
@@ -34,7 +42,7 @@ export function App() {
           <NavLink to="/review" className="icon-button" aria-label="Review due cards">↻</NavLink>
           <NavLink to="/settings/ai" className="icon-button" aria-label="Settings">⚙</NavLink>
         </div>
-      </header>
+      </header> : null}
 
       <main className="app-main">
         <Suspense fallback={<div className="route-loading" role="status">Loading…</div>}>
@@ -55,14 +63,14 @@ export function App() {
         </Suspense>
       </main>
 
-      <nav className="mobile-nav app-tabbar" aria-label="Primary">
+      {!immersive ? <nav className="mobile-nav app-tabbar" aria-label="Primary">
         {primaryItems.map((item) => (
           <NavLink key={item.to} to={item.to} end={'end' in item ? item.end : false}>
             <span>{item.glyph}</span>
             <small>{item.label}</small>
           </NavLink>
         ))}
-      </nav>
+      </nav> : null}
       <PwaUpdateBanner />
     </div>
   )

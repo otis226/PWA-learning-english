@@ -48,11 +48,11 @@ export function HomePage() {
       <section className="app-section">
         <div className="app-section-title"><h2>Practice</h2><Link to="/study">See all</Link></div>
         <div className="practice-shortcuts">
-          <Shortcut to="/study" glyph="Aa" title="Flashcards" />
+          <Shortcut to="/study" glyph="Aa" title="Cards" />
           <Shortcut to="/study" glyph="?" title="Quiz" />
-          <Shortcut to="/study" glyph="◉" title="Listening" />
-          <Shortcut to="/study" glyph="◌" title="Speaking" />
-          <Shortcut to="/study" glyph="¶" title="Reading" />
+          <Shortcut to="/study" glyph="◉" title="Listen" />
+          <Shortcut to="/study" glyph="◌" title="Speak" />
+          <Shortcut to="/study" glyph="¶" title="Read" />
           <Shortcut to="/memory" glyph="∞" title="Memory" />
         </div>
       </section>
@@ -78,11 +78,9 @@ export function HomePage() {
         )}
       </section>
 
-      <section className="app-section">
-        <div className="app-section-title"><h2>Needs attention</h2><Link to="/memory">Memory</Link></div>
-        {!snap?.weakConcepts.length ? (
-          <div className="subtle-state">Weak concepts will appear after practice.</div>
-        ) : (
+      {snap?.weakConcepts.length ? (
+        <section className="app-section">
+          <div className="app-section-title"><h2>Needs attention</h2><Link to="/memory">Memory</Link></div>
           <div className="app-list">
             {snap.weakConcepts.slice(0, 5).map((concept) => (
               <div className="app-list-row" key={concept.id}>
@@ -92,8 +90,8 @@ export function HomePage() {
               </div>
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      ) : null}
     </div>
   )
 }

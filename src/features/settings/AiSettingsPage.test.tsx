@@ -68,6 +68,7 @@ describe('AiSettingsPage', () => {
       </MemoryRouter>,
     )
 
+    await user.click(await screen.findByText(/advanced endpoint/i))
     const displayName = await screen.findByLabelText(/display name/i)
     await user.clear(displayName)
     await user.type(displayName, 'Fixture Provider')
