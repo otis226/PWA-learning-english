@@ -44,6 +44,19 @@ export function NewSourcePage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<{ title: string; message: string } | null>(null)
 
+  function applyPreset(preset: 'conversation' | 'work' | 'travel' | 'story') {
+    const templates = {
+      conversation: 'Create a practical English lesson for everyday conversation. Focus on natural phrases, listening-friendly sentences, and useful collocations.',
+      work: 'Create a workplace English lesson for meetings, updates, polite disagreement, and clear professional phrasing.',
+      travel: 'Create a travel English lesson for airports, hotels, restaurants, directions, and solving common travel problems.',
+      story: 'Create a short interesting English story for reading and listening practice, then extract useful vocabulary and comprehension concepts.',
+    } as const
+    setType('custom_topic')
+    setGoal('mixed')
+    setTitle(`AI ${preset} lesson`)
+    setContent(templates[preset])
+  }
+
   async function onAnalyze() {
     setBusy(true)
     setError(null)
@@ -66,11 +79,19 @@ export function NewSourcePage() {
 
   return (
     <div className="page">
-      <h1>New learning material</h1>
+      <p className="eyebrow">AI lesson builder</p>
+      <h1>Turn a topic or source into practice.</h1>
       <p className="lead">
-        Paste text, a vocabulary list, or a custom topic. Choose what you want to learn — the app
-        picks exercise formats later.
+        Paste text, a vocabulary list, or describe a topic. Your configured OpenAI-compatible API
+        creates the learning pack; the app keeps memory, review scheduling and history locally.
       </p>
+
+      <section className="preset-grid" aria-label="Quick AI lesson presets">
+        <button type="button" onClick={() => applyPreset('conversation')}><strong>Conversation</strong><span>Natural everyday English</span></button>
+        <button type="button" onClick={() => applyPreset('work')}><strong>Work English</strong><span>Meetings and professional phrasing</span></button>
+        <button type="button" onClick={() => applyPreset('travel')}><strong>Travel</strong><span>Real-world situations</span></button>
+        <button type="button" onClick={() => applyPreset('story')}><strong>Story lesson</strong><span>Reading + listening-friendly content</span></button>
+      </section>
 
       {error ? (
         <div className="banner error" role="alert">

@@ -9,6 +9,7 @@ import type { AIGateway } from '../../ai/gateway/types'
 import type { ProviderSettingsService } from '../../features/settings/provider-settings-service'
 import type {
   AttemptRecord,
+  ExerciseType,
   ExerciseRecord,
   StudySessionRecord,
 } from '../../db/schema/types'
@@ -72,7 +73,7 @@ export class PracticeService {
     private readonly gateway: AIGateway,
   ) {}
 
-  async startPracticeSession(packId: string): Promise<{
+  async startPracticeSession(packId: string, options?: { types?: ExerciseType[] }): Promise<{
     session: StudySessionRecord
     exercises: ExerciseRecord[]
   }> {
@@ -81,9 +82,19 @@ export class PracticeService {
       throw new AppError('pack_not_found', 'Learning pack not found.')
     }
     // pack.exerciseIds is the current generation; historical rows stay in IDB.
-    const exercises = await this.exercises.getMany(pack.exerciseIds)
+    const currentExercises = await this.exercises.getMany(pack.exerciseIds)
+    const requestedTypes = options?.types
+    const exercises =
+      requestedTypes && requestedTypes.length > 0
+        ? currentExercises.filter((exercise) => requestedTypes.includes(exercise.type))
+        : currentExercises
     if (exercises.length === 0) {
-      throw new AppError('no_exercises', 'Generate exercises before practicing.')
+      throw new AppError(
+        'no_exercises',
+        requestedTypes?.length
+          ? 'This pack does not have exercises for that study mode yet.'
+          : 'Generate exercises before practicing.',
+      )
     }
     const now = new Date().toISOString()
     const session: StudySessionRecord = {

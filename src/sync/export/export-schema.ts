@@ -2,8 +2,8 @@ import { z } from 'zod'
 import { aiProviderProfileSchema } from '../../ai/schemas/provider-profile'
 
 export const EXPORT_FORMAT = 'pwa-learning-english-export' as const
-/** RC1 full learning-state export. */
-export const EXPORT_SCHEMA_VERSION = 2 as const
+/** Full learning-state export including multimodal skill attempts. */
+export const EXPORT_SCHEMA_VERSION = 3 as const
 
 export const appSettingsExportSchema = z.object({
   activeProviderProfileId: z.string().nullable(),
@@ -197,6 +197,19 @@ const reviewLogExportSchema = z.object({
   createdAt: z.string(),
 })
 
+const skillAttemptExportSchema = z.object({
+  id: z.string(),
+  mode: z.enum(['pronunciation', 'listening', 'reading']),
+  conceptId: z.string().nullable().optional(),
+  sourceId: z.string().nullable().optional(),
+  packId: z.string().nullable().optional(),
+  targetText: z.string(),
+  responseText: z.string().nullable().optional(),
+  score: z.number().min(0).max(100).nullable().optional(),
+  durationMs: z.number().nonnegative().nullable().optional(),
+  createdAt: z.string(),
+})
+
 export const exportDataSchema = z.object({
   providerProfiles: z.array(aiProviderProfileSchema),
   appSettings: appSettingsExportSchema,
@@ -211,6 +224,7 @@ export const exportDataSchema = z.object({
   conceptMastery: z.array(masteryExportSchema).default([]),
   reviewCards: z.array(reviewCardExportSchema).default([]),
   reviewLogs: z.array(reviewLogExportSchema).default([]),
+  skillAttempts: z.array(skillAttemptExportSchema).default([]),
 })
 
 export const exportEnvelopeSchema = z.object({

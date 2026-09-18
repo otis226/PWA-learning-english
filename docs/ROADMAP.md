@@ -600,6 +600,35 @@ A user can authorize Drive, back up a versioned dataset, clear/use another clean
 
 ---
 
+# R2 — Multimodal Learning Studio
+
+**Status:** `[x] COMPLETE` (candidate exit gate passed 2026-09-19)
+
+This release overlay was explicitly activated by the user after RC1.1 and supersedes the previous deferral of browser speech/pronunciation.
+
+## Objective
+
+Make the existing local-first learning core usable as one daily English-learning app across recall, quiz, listening, pronunciation and reading while preserving one durable learner memory.
+
+## Delivered
+
+- [x] Today dashboard and Study Studio
+- [x] dedicated Flashcard and Quiz launch modes over the existing practice engine
+- [x] listening dictation using browser speech synthesis
+- [x] pronunciation/shadowing with synthesis plus optional browser recognition
+- [x] Reading Room with read-aloud and focus mode
+- [x] Memory Center for mastery, weak/strong concepts and skill history
+- [x] IndexedDB v3 `skillAttempts` persistence
+- [x] export/import schema v3
+- [x] OpenAI-compatible AI lesson presets without creating a second AI architecture
+- [x] critical Playwright coverage through multimodal history and restore
+
+## R2 exit gate
+
+The production candidate passes `pnpm verify` and `pnpm test:e2e`, generates its PWA manifest/service worker, preserves old database/export migration paths, and degrades speech-recognition features safely when the browser lacks them.
+
+---
+
 # M8 — Adaptive personalized learning
 
 **Status:** `[ ]`
@@ -663,7 +692,7 @@ Only after conflict semantics are explicitly designed. Start from append-friendl
 
 ### Speech/pronunciation
 
-Only after text-learning core demonstrates real usage.
+Activated and delivered for the browser-capability baseline in **R2 — Multimodal Learning Studio**. Rich phoneme-level scoring remains optional future infrastructure and must not be inferred from transcript similarity.
 
 ---
 

@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const e2ePort = Number(process.env.E2E_PORT ?? 4199)
+const e2eBaseUrl = `http://127.0.0.1:${e2ePort}`
+
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: false,
@@ -8,13 +11,13 @@ export default defineConfig({
   workers: 1,
   reporter: 'list',
   use: {
-    baseURL: 'http://127.0.0.1:4173',
+    baseURL: e2eBaseUrl,
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'pnpm build && pnpm preview --host 127.0.0.1 --port 4173',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI,
+    command: `pnpm build && pnpm preview --host 127.0.0.1 --port ${e2ePort} --strictPort`,
+    url: e2eBaseUrl,
+    reuseExistingServer: false,
     timeout: 180_000,
   },
   projects: [

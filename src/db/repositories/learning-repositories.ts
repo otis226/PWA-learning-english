@@ -9,6 +9,7 @@ import type {
   MistakeSignalRecord,
   ReviewCardRecord,
   ReviewLogRecord,
+  SkillAttemptRecord,
   SourceRecord,
   StudySessionRecord,
 } from '../schema/types'
@@ -296,5 +297,25 @@ export class ReviewLogRepository {
 
   async clear(): Promise<void> {
     await this.db.reviewLogs.clear()
+  }
+}
+
+export class SkillAttemptRepository {
+  constructor(private readonly db: AppDatabase) {}
+
+  async put(record: SkillAttemptRecord): Promise<void> {
+    await this.db.skillAttempts.put(record)
+  }
+
+  async listRecent(limit = 100): Promise<SkillAttemptRecord[]> {
+    return this.db.skillAttempts.orderBy('createdAt').reverse().limit(limit).toArray()
+  }
+
+  async listByMode(mode: SkillAttemptRecord['mode'], limit = 100): Promise<SkillAttemptRecord[]> {
+    return this.db.skillAttempts.where('mode').equals(mode).reverse().sortBy('createdAt').then((rows) => rows.slice(0, limit))
+  }
+
+  async clear(): Promise<void> {
+    await this.db.skillAttempts.clear()
   }
 }

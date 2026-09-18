@@ -88,6 +88,7 @@ describe('ExportService', () => {
         conceptMastery: [],
         reviewCards: [],
         reviewLogs: [],
+        skillAttempts: [],
       },
     }
     expect(service.validateImport(good).ok).toBe(true)
@@ -138,11 +139,22 @@ describe('ExportService', () => {
       createdAt: now,
       updatedAt: now,
     })
+    await db.skillAttempts.put({
+      id: 'skill_1',
+      mode: 'listening',
+      packId: 'pack_1',
+      targetText: 'Despite the rain',
+      responseText: 'Despite the rain',
+      score: 100,
+      createdAt: now,
+    })
     const envelope = await service.buildExport()
     await service.clearAllLearningData()
     expect(await db.learningPacks.count()).toBe(0)
+    expect(await db.skillAttempts.count()).toBe(0)
     const restored = await service.restoreReplace(envelope)
     expect(restored.ok).toBe(true)
     expect(await db.learningPacks.get('pack_1')).toBeTruthy()
+    expect(await db.skillAttempts.get('skill_1')).toMatchObject({ mode: 'listening', score: 100 })
   })
 })

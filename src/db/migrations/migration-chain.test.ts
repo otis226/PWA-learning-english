@@ -49,7 +49,7 @@ describe('Dexie migration chain', () => {
     expect(DB_MIGRATION_CONVENTIONS.initialVersion).toBe(1)
   })
 
-  it('upgrades seeded v1 data through production AppDatabase v2 without data loss', async () => {
+  it('upgrades seeded v1 data through production AppDatabase v3 without data loss', async () => {
     const name = `migration-chain-${crypto.randomUUID()}`
     const now = new Date().toISOString()
 
@@ -75,24 +75,25 @@ describe('Dexie migration chain', () => {
     await v1.meta.put({ key: 'schemaNote', value: 'from-v1' })
     v1.close()
 
-    const v2 = new AppDatabase(name)
-    openDbs.push(v2)
-    await v2.open()
+    const v3 = new AppDatabase(name)
+    openDbs.push(v3)
+    await v3.open()
 
-    expect(v2.verno).toBe(2)
-    expect(v2.tables.map((t) => t.name)).toContain('sources')
-    expect(v2.tables.map((t) => t.name)).toContain('reviewCards')
+    expect(v3.verno).toBe(3)
+    expect(v3.tables.map((t) => t.name)).toContain('sources')
+    expect(v3.tables.map((t) => t.name)).toContain('reviewCards')
+    expect(v3.tables.map((t) => t.name)).toContain('skillAttempts')
 
-    const profile = await v2.providerProfiles.get('p1')
+    const profile = await v3.providerProfiles.get('p1')
     expect(profile?.displayName).toBe('Seeded')
-    expect((await v2.appSettings.get('app'))?.activeProviderProfileId).toBe('p1')
-    expect(await v2.meta.get('schemaNote')).toEqual({
+    expect((await v3.appSettings.get('app'))?.activeProviderProfileId).toBe('p1')
+    expect(await v3.meta.get('schemaNote')).toEqual({
       key: 'schemaNote',
       value: 'from-v1',
     })
-    expect(await v2.meta.get('migratedTo')).toEqual({
+    expect(await v3.meta.get('migratedTo')).toEqual({
       key: 'migratedTo',
-      value: '2',
+      value: '3',
     })
   })
 })

@@ -58,6 +58,7 @@ export type ExerciseType =
 
 export type StudySessionKind = 'practice' | 'review'
 export type StudySessionStatus = 'in_progress' | 'completed' | 'abandoned'
+export type SkillMode = 'pronunciation' | 'listening' | 'reading'
 
 export type GenerationProvenance = {
   providerProfileId: string
@@ -252,5 +253,18 @@ export type ReviewLogRecord = {
   dueAfter: string
   scheduledDays: number
   attemptId?: string | null
+  createdAt: string
+}
+
+export type SkillAttemptRecord = {
+  id: string
+  mode: SkillMode
+  conceptId?: string | null
+  sourceId?: string | null
+  packId?: string | null
+  targetText: string
+  responseText?: string | null
+  score?: number | null
+  durationMs?: number | null
   createdAt: string
 }

@@ -35,6 +35,7 @@ export class ExportService {
       conceptMastery,
       reviewCards,
       reviewLogs,
+      skillAttempts,
     ] = await Promise.all([
       this.profiles.list(),
       this.settings.get(),
@@ -49,6 +50,7 @@ export class ExportService {
       this.db.conceptMastery.toArray(),
       this.db.reviewCards.toArray(),
       this.db.reviewLogs.toArray(),
+      this.db.skillAttempts.toArray(),
     ])
 
     const envelope: ExportEnvelope = {
@@ -83,6 +85,7 @@ export class ExportService {
         conceptMastery,
         reviewCards,
         reviewLogs,
+        skillAttempts,
       },
     }
 
@@ -157,6 +160,7 @@ export class ExportService {
         this.db.conceptMastery,
         this.db.reviewCards,
         this.db.reviewLogs,
+        this.db.skillAttempts,
       ],
       async () => {
         await Promise.all([
@@ -172,6 +176,7 @@ export class ExportService {
           this.db.conceptMastery.clear(),
           this.db.reviewCards.clear(),
           this.db.reviewLogs.clear(),
+          this.db.skillAttempts.clear(),
         ])
 
         await this.db.providerProfiles.bulkPut(data.providerProfiles)
@@ -201,6 +206,7 @@ export class ExportService {
         await this.db.conceptMastery.bulkPut(data.conceptMastery)
         await this.db.reviewCards.bulkPut(data.reviewCards)
         await this.db.reviewLogs.bulkPut(data.reviewLogs)
+        await this.db.skillAttempts.bulkPut(data.skillAttempts)
       },
     )
 
@@ -222,6 +228,7 @@ export class ExportService {
         this.db.conceptMastery,
         this.db.reviewCards,
         this.db.reviewLogs,
+        this.db.skillAttempts,
       ],
       async () => {
         await Promise.all([
@@ -236,6 +243,7 @@ export class ExportService {
           this.db.conceptMastery.clear(),
           this.db.reviewCards.clear(),
           this.db.reviewLogs.clear(),
+          this.db.skillAttempts.clear(),
         ])
       },
     )
@@ -252,7 +260,7 @@ export class ExportService {
   }
 }
 
-/** Accept legacy v1 envelopes (settings only) by filling empty learning arrays. */
+/** Accept legacy v1/v2 envelopes by filling fields added in later export schemas. */
 function migrateImportPayload(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') return raw
   const obj = raw as Record<string, unknown>
@@ -275,6 +283,18 @@ function migrateImportPayload(raw: unknown): unknown {
         conceptMastery: [],
         reviewCards: [],
         reviewLogs: [],
+        skillAttempts: [],
+      },
+    }
+  }
+  if (obj.schemaVersion === 2 && obj.format === EXPORT_FORMAT) {
+    const data = (obj.data ?? {}) as Record<string, unknown>
+    return {
+      ...obj,
+      schemaVersion: EXPORT_SCHEMA_VERSION,
+      data: {
+        ...data,
+        skillAttempts: data.skillAttempts ?? [],
       },
     }
   }

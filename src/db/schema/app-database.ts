@@ -12,6 +12,7 @@ import type {
   ProviderProfileRecord,
   ReviewCardRecord,
   ReviewLogRecord,
+  SkillAttemptRecord,
   SourceRecord,
   StudySessionRecord,
 } from './types'
@@ -23,10 +24,11 @@ import type {
  * - Never mutate released store definitions in place; add a new version.
  * - M0 shipped version 1: providerProfiles, appSettings, meta.
  * - RC1 ships version 2: learning + review tables.
+ * - Learning Studio ships version 3: durable listening/pronunciation/reading attempts.
  * - Migration test pattern: src/db/migrations/migration-chain.test.ts
  */
 export const APP_DATABASE_NAME = 'pwa-learning-english'
-export const APP_DATABASE_VERSION = 2
+export const APP_DATABASE_VERSION = 3
 
 const V1_STORES = {
   providerProfiles: 'id, updatedAt, displayName',
@@ -49,6 +51,11 @@ const V2_STORES = {
   reviewLogs: 'id, reviewCardId, conceptId, createdAt',
 } as const
 
+const V3_STORES = {
+  ...V2_STORES,
+  skillAttempts: 'id, mode, conceptId, sourceId, packId, createdAt, score',
+} as const
+
 export class AppDatabase extends Dexie {
   providerProfiles!: EntityTable<ProviderProfileRecord, 'id'>
   appSettings!: EntityTable<AppSettingsRecord, 'id'>
@@ -64,6 +71,7 @@ export class AppDatabase extends Dexie {
   conceptMastery!: EntityTable<ConceptMasteryRecord, 'conceptId'>
   reviewCards!: EntityTable<ReviewCardRecord, 'id'>
   reviewLogs!: EntityTable<ReviewLogRecord, 'id'>
+  skillAttempts!: EntityTable<SkillAttemptRecord, 'id'>
 
   constructor(name = APP_DATABASE_NAME) {
     super(name)
@@ -74,6 +82,12 @@ export class AppDatabase extends Dexie {
       .stores({ ...V2_STORES })
       .upgrade(async (tx) => {
         await tx.table('meta').put({ key: 'migratedTo', value: '2' })
+      })
+
+    this.version(3)
+      .stores({ ...V3_STORES })
+      .upgrade(async (tx) => {
+        await tx.table('meta').put({ key: 'migratedTo', value: '3' })
       })
   }
 }

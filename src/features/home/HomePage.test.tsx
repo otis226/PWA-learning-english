@@ -28,6 +28,19 @@ function mockServices(): AppServices {
     exportService: {
       shouldRemindBackup: vi.fn(() => false),
     },
+    memory: {
+      getSnapshot: vi.fn(async () => ({
+        conceptCount: 0,
+        strongCount: 0,
+        weakCount: 0,
+        reviewCardCount: 0,
+        averageStrength: 0,
+        skillCounts: { pronunciation: 0, listening: 0, reading: 0 },
+        recentSkillAttempts: [],
+        strongest: [],
+        weakest: [],
+      })),
+    },
   } as unknown as AppServices
 }
 
@@ -41,17 +54,14 @@ describe('HomePage', () => {
       </MemoryRouter>,
     )
     expect(
-      screen.getByRole('heading', { name: /turn anything into something you can learn/i }),
+      screen.getByRole('heading', { name: /build english that stays with you/i }),
     ).toBeInTheDocument()
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: /new material/i })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: /create with ai/i })).toHaveAttribute(
         'href',
         '/learn/new',
       )
     })
-    expect(screen.getByRole('link', { name: /ai provider/i })).toHaveAttribute(
-      'href',
-      '/settings/ai',
-    )
+    expect(screen.getByRole('link', { name: /long-term review/i })).toHaveAttribute('href', '/review')
   })
 })
