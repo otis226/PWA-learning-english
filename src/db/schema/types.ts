@@ -1,6 +1,7 @@
 import type { AIProviderCapabilities } from '../../ai/schemas/capabilities'
 
 export type ProviderProtocol = 'chat_completions'
+export type ProviderAuthMode = 'bearer' | 'x-api-key' | 'custom-header'
 
 /** Non-secret AI provider profile persisted in IndexedDB. */
 export type ProviderProfileRecord = {
@@ -9,6 +10,10 @@ export type ProviderProfileRecord = {
   baseUrl: string
   model: string
   protocol: ProviderProtocol
+  /** How the secret credential is attached to requests. Defaults to bearer for legacy profiles. */
+  authMode?: ProviderAuthMode
+  /** Non-secret header name used only when authMode=custom-header. */
+  authHeaderName?: string
   capabilityOverrides?: Partial<AIProviderCapabilities>
   createdAt: string
   updatedAt: string

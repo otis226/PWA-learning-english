@@ -53,6 +53,49 @@ describe('OpenAICompatibleChatClient', () => {
     expect(headers.Authorization).toBe('Bearer sk-test')
   })
 
+  it('supports x-api-key authentication', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse({ choices: [{ message: { content: 'pong' } }] }),
+    )
+    const client = new OpenAICompatibleChatClient({
+      baseUrl: 'https://api.example.com/v1',
+      model: 'test-model',
+      providerProfileId: 'p1',
+      authMode: 'x-api-key',
+      credentialStore: memoryCredentials('key-x'),
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      isOnline: () => true,
+    })
+
+    await client.testConnection()
+    const [, init] = fetchImpl.mock.calls[0] as [string, RequestInit]
+    const headers = init.headers as Record<string, string>
+    expect(headers['x-api-key']).toBe('key-x')
+    expect(headers.Authorization).toBeUndefined()
+  })
+
+  it('supports a custom API-key header', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse({ choices: [{ message: { content: 'pong' } }] }),
+    )
+    const client = new OpenAICompatibleChatClient({
+      baseUrl: 'https://api.example.com/v1',
+      model: 'test-model',
+      providerProfileId: 'p1',
+      authMode: 'custom-header',
+      authHeaderName: 'X-Provider-Key',
+      credentialStore: memoryCredentials('key-custom'),
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      isOnline: () => true,
+    })
+
+    await client.testConnection()
+    const [, init] = fetchImpl.mock.calls[0] as [string, RequestInit]
+    const headers = init.headers as Record<string, string>
+    expect(headers['X-Provider-Key']).toBe('key-custom')
+    expect(headers.Authorization).toBeUndefined()
+  })
+
   it('testConnection sends a minimal body without optional generation knobs', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(
       jsonResponse({

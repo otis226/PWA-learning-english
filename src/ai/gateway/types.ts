@@ -1,4 +1,5 @@
 import type { AIProviderCapabilities } from '../schemas/capabilities'
+import type { ProviderAuthMode } from '../../db/schema/types'
 import type { ChatCompletionRequest, ChatCompletionResult } from '../providers/openai-compatible/chat-client'
 import type { AIErrorCategory } from '../providers/openai-compatible/errors'
 
@@ -8,6 +9,8 @@ export type ActiveAIConfig = {
   baseUrl: string
   model: string
   protocol: 'chat_completions'
+  authMode: ProviderAuthMode
+  authHeaderName?: string
   capabilities: AIProviderCapabilities
   hasCredential: boolean
   credentialPersistence: 'session' | 'remember' | null

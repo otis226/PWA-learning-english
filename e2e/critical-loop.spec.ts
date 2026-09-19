@@ -14,7 +14,7 @@ test.describe('Learning Studio critical loop', () => {
 
     await page.goto('/settings/ai')
     await page.getByLabel(/model \(free text\)/i).fill('mock-e2e-model')
-    await page.getByLabel(/api key/i).fill('sk-e2e-test-key-not-real')
+    await page.getByLabel('API key', { exact: true }).fill('sk-e2e-test-key-not-real')
     await page.getByRole('button', { name: /save provider/i }).click()
     await expect(page.getByText(/provider profile saved/i)).toBeVisible({ timeout: 10_000 })
 
@@ -96,7 +96,7 @@ test.describe('Learning Studio critical loop', () => {
       data: { learningPacks: unknown[]; skillAttempts: unknown[] }
     }
     expect(envelope.format).toBe('pwa-learning-english-export')
-    expect(envelope.schemaVersion).toBe(3)
+    expect(envelope.schemaVersion).toBe(4)
     expect(envelope.data.learningPacks.length).toBeGreaterThan(0)
     expect(envelope.data.skillAttempts.length).toBeGreaterThan(0)
 

@@ -28,7 +28,7 @@ The user explicitly activated the broader product scope after RC1.1: flashcards,
 - [x] Memory Center combining FSRS/mastery with multimodal skill history
 - [x] AI lesson presets layered on the existing BYOK/OpenAI-compatible generation flow
 - [x] IndexedDB v3 migration for `skillAttempts`
-- [x] export/import schema v3 with multimodal history and no credentials
+- [x] export/import schema v4 with multimodal history + non-secret provider auth metadata, no credentials
 - [x] route code-splitting so the production entry chunk remains below the Vite 500 kB warning threshold
 - [x] app-first shell: compact app bar, persistent bottom tabs, daily-plan Today screen, focused Study/session screens
 - [x] low-input UX pass: single-composer Create, compact Memory, progressive AI settings, immersive sessions, fixed primary Create CTA
@@ -39,7 +39,7 @@ The user explicitly activated the broader product scope after RC1.1: flashcards,
 2. [x] `pnpm test:e2e` — AI pack -> practice -> listening -> pronunciation surface -> Memory Center -> export/clear/restore
 3. [x] production manifest + service worker generated
 4. [x] legacy v1 database migration reaches v3 without data loss
-5. [x] legacy export v1/v2 payloads migrate into export schema v3
+5. [x] legacy export v1/v2/v3 payloads migrate into export schema v4
 6. [x] current docs and decisions describe R2 truth
 
 ## Current next action

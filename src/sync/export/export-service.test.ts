@@ -32,6 +32,8 @@ describe('ExportService', () => {
       baseUrl: 'https://api.example.com/v1',
       model: 'my-model',
       protocol: 'chat_completions',
+      authMode: 'custom-header',
+      authHeaderName: 'X-Provider-Key',
       createdAt: now,
       updatedAt: now,
     })
@@ -56,6 +58,10 @@ describe('ExportService', () => {
     expect(envelope.format).toBe(EXPORT_FORMAT)
     expect(envelope.schemaVersion).toBe(EXPORT_SCHEMA_VERSION)
     expect(envelope.data.providerProfiles).toHaveLength(1)
+    expect(envelope.data.providerProfiles[0]).toMatchObject({
+      authMode: 'custom-header',
+      authHeaderName: 'X-Provider-Key',
+    })
     expect(envelope.data.sources).toHaveLength(1)
     expect(envelope.data.appSettings.activeProviderProfileId).toBe('prov_1')
 
@@ -113,6 +119,46 @@ describe('ExportService', () => {
     }
     const result = service.validateImport(bad)
     expect(result.ok).toBe(false)
+  })
+
+  it('migrates schema v3 provider profiles to bearer auth', () => {
+    const now = new Date().toISOString()
+    const legacyV3 = {
+      format: EXPORT_FORMAT,
+      schemaVersion: 3,
+      exportedAt: now,
+      data: {
+        providerProfiles: [{
+          id: 'legacy',
+          displayName: 'Legacy',
+          baseUrl: 'https://api.example.com/v1',
+          model: 'm',
+          protocol: 'chat_completions',
+          createdAt: now,
+          updatedAt: now,
+        }],
+        appSettings: { activeProviderProfileId: 'legacy', updatedAt: now },
+        sources: [],
+        learningPacks: [],
+        concepts: [],
+        conceptOccurrences: [],
+        exercises: [],
+        studySessions: [],
+        attempts: [],
+        mistakeSignals: [],
+        conceptMastery: [],
+        reviewCards: [],
+        reviewLogs: [],
+        skillAttempts: [],
+      },
+    }
+
+    const result = service.validateImport(legacyV3)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.envelope.schemaVersion).toBe(EXPORT_SCHEMA_VERSION)
+      expect(result.envelope.data.providerProfiles[0]?.authMode).toBe('bearer')
+    }
   })
 
   it('replace restore round-trips learning rows', async () => {

@@ -2,8 +2,8 @@ import { z } from 'zod'
 import { aiProviderProfileSchema } from '../../ai/schemas/provider-profile'
 
 export const EXPORT_FORMAT = 'pwa-learning-english-export' as const
-/** Full learning-state export including multimodal skill attempts. */
-export const EXPORT_SCHEMA_VERSION = 3 as const
+/** Full learning-state export including multimodal skill attempts and provider auth metadata. */
+export const EXPORT_SCHEMA_VERSION = 4 as const
 
 export const appSettingsExportSchema = z.object({
   activeProviderProfileId: z.string().nullable(),

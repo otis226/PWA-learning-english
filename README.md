@@ -17,7 +17,7 @@ Users can create material from text, vocabulary lists, or a topic using an OpenA
 - Chat Completions compatibility baseline + structured-output fallback
 - `ts-fsrs` for spaced repetition
 - Browser speech synthesis + optional speech recognition with graceful fallback
-- Versioned JSON export/import (schema v3, secrets excluded)
+- Versioned JSON export/import (schema v4, secrets excluded)
 - Google Drive backup deferred (M7)
 
 ## Requirements

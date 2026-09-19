@@ -78,7 +78,7 @@ describe('AiSettingsPage', () => {
     const model = screen.getByLabelText(/model \(free text\)/i)
     await user.clear(model)
     await user.type(model, 'fixture-model')
-    await user.type(screen.getByLabelText(/^API key/i), 'sk-fixture-key')
+    await user.type(screen.getByLabelText(/^API key/i, { selector: 'input' }), 'sk-fixture-key')
 
     await user.click(screen.getByRole('button', { name: /save provider/i }))
 

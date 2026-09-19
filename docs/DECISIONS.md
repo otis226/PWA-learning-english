@@ -375,3 +375,23 @@ Default UX rules:
 - keep long configuration forms limited to infrequent settings surfaces.
 
 The Create flow therefore defaults to preset/topic/text/words + one composer + Generate; AI provider setup defaults to Model + API key, with endpoint metadata under Advanced.
+
+## D-032 — AI provider profiles separate protocol, endpoint, and authentication
+
+**Status:** Accepted
+**Date:** 2026-09-19
+
+The content-generation layer remains OpenAI Chat Completions compatible, but provider configuration is not tied to one vendor.
+
+Provider profiles store only non-secret connection metadata:
+
+- provider display name and Base URL;
+- model ID;
+- API-key auth mode: bearer, x-api-key, or custom-header;
+- custom header name when required.
+
+The credential value remains in the separate credential store and is never written into profile rows or exports.
+
+The settings UI provides verified convenience presets for OpenAI, ZCode/Z.ai, DeepSeek, OpenRouter and Groq while preserving a custom Base URL path. ZCode's Coding Plan endpoint is labeled as coding-only; general English-learning generation should use a general-purpose Z.ai/OpenAI-compatible API entitlement instead.
+
+Export schema v4 adds the non-secret auth metadata so backup/restore preserves provider behavior. Legacy v1-v3 exports migrate forward with Bearer auth as the compatibility default.

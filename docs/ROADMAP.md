@@ -619,7 +619,7 @@ Make the existing local-first learning core usable as one daily English-learning
 - [x] Reading Room with read-aloud and focus mode
 - [x] Memory Center for mastery, weak/strong concepts and skill history
 - [x] IndexedDB v3 `skillAttempts` persistence
-- [x] export/import schema v3
+- [x] export/import schema v4
 - [x] OpenAI-compatible AI lesson presets without creating a second AI architecture
 - [x] critical Playwright coverage through multimodal history and restore
 
