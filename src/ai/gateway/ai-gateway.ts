@@ -62,6 +62,8 @@ export class DefaultAIGateway implements AIGateway {
       baseUrl: config.baseUrl,
       model: config.model,
       providerProfileId: config.providerProfileId,
+      authMode: config.authMode,
+      authHeaderName: config.authHeaderName,
       credentialStore: this.credentialStore,
       fetchImpl: this.fetchImpl,
     })

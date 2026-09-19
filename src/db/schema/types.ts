@@ -1,6 +1,7 @@
 import type { AIProviderCapabilities } from '../../ai/schemas/capabilities'
 
 export type ProviderProtocol = 'chat_completions'
+export type ProviderAuthMode = 'bearer' | 'x-api-key' | 'custom-header'
 
 /** Non-secret AI provider profile persisted in IndexedDB. */
 export type ProviderProfileRecord = {
@@ -9,6 +10,10 @@ export type ProviderProfileRecord = {
   baseUrl: string
   model: string
   protocol: ProviderProtocol
+  /** How the secret credential is attached to requests. Defaults to bearer for legacy profiles. */
+  authMode?: ProviderAuthMode
+  /** Non-secret header name used only when authMode=custom-header. */
+  authHeaderName?: string
   capabilityOverrides?: Partial<AIProviderCapabilities>
   createdAt: string
   updatedAt: string
@@ -58,6 +63,7 @@ export type ExerciseType =
 
 export type StudySessionKind = 'practice' | 'review'
 export type StudySessionStatus = 'in_progress' | 'completed' | 'abandoned'
+export type SkillMode = 'pronunciation' | 'listening' | 'reading'
 
 export type GenerationProvenance = {
   providerProfileId: string
@@ -252,5 +258,18 @@ export type ReviewLogRecord = {
   dueAfter: string
   scheduledDays: number
   attemptId?: string | null
+  createdAt: string
+}
+
+export type SkillAttemptRecord = {
+  id: string
+  mode: SkillMode
+  conceptId?: string | null
+  sourceId?: string | null
+  packId?: string | null
+  targetText: string
+  responseText?: string | null
+  score?: number | null
+  durationMs?: number | null
   createdAt: string
 }

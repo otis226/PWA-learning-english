@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useAppServices } from '../../app/use-app-services'
 import type { ConnectionTestResult } from '../../ai/gateway/types'
+import type { ProviderAuthMode } from '../../db/schema/types'
 import type { ProviderSettingsView } from './provider-settings-service'
 
 type FormState = {
@@ -8,16 +9,78 @@ type FormState = {
   baseUrl: string
   model: string
   apiKey: string
+  authMode: ProviderAuthMode
+  authHeaderName: string
   rememberOnDevice: boolean
 }
 
 const emptyForm: FormState = {
-  displayName: '',
+  displayName: 'My AI',
   baseUrl: 'https://api.openai.com/v1',
   model: '',
   apiKey: '',
+  authMode: 'bearer',
+  authHeaderName: '',
   rememberOnDevice: false,
 }
+
+const PROVIDER_PRESETS: Array<{
+  id: string
+  label: string
+  detail: string
+  displayName: string
+  baseUrl: string
+  authMode: ProviderAuthMode
+}> = [
+  {
+    id: 'openai',
+    label: 'OpenAI',
+    detail: 'Official API',
+    displayName: 'OpenAI',
+    baseUrl: 'https://api.openai.com/v1',
+    authMode: 'bearer',
+  },
+  {
+    id: 'zcode-coding',
+    label: 'ZCode Plan',
+    detail: 'Coding-only endpoint',
+    displayName: 'ZCode Coding Plan',
+    baseUrl: 'https://api.z.ai/api/coding/paas/v4',
+    authMode: 'bearer',
+  },
+  {
+    id: 'zai-api',
+    label: 'Z.ai API',
+    detail: 'Balance / resources',
+    displayName: 'Z.ai API',
+    baseUrl: 'https://api.z.ai/api/paas/v4',
+    authMode: 'bearer',
+  },
+  {
+    id: 'deepseek',
+    label: 'DeepSeek',
+    detail: 'OpenAI compatible',
+    displayName: 'DeepSeek',
+    baseUrl: 'https://api.deepseek.com',
+    authMode: 'bearer',
+  },
+  {
+    id: 'openrouter',
+    label: 'OpenRouter',
+    detail: 'Many model vendors',
+    displayName: 'OpenRouter',
+    baseUrl: 'https://openrouter.ai/api/v1',
+    authMode: 'bearer',
+  },
+  {
+    id: 'groq',
+    label: 'Groq',
+    detail: 'OpenAI compatible',
+    displayName: 'Groq',
+    baseUrl: 'https://api.groq.com/openai/v1',
+    authMode: 'bearer',
+  },
+]
 
 export function AiSettingsPage() {
   const { providerSettings } = useAppServices()
@@ -42,6 +105,8 @@ export function AiSettingsPage() {
           baseUrl: next.profile.baseUrl,
           model: next.profile.model,
           apiKey: '',
+          authMode: next.profile.authMode ?? 'bearer',
+          authHeaderName: next.profile.authHeaderName ?? '',
           rememberOnDevice: next.credentialPersistence === 'remember',
         })
       }
@@ -70,6 +135,8 @@ export function AiSettingsPage() {
         baseUrl: form.baseUrl,
         model: form.model,
         apiKey: form.apiKey,
+        authMode: form.authMode,
+        authHeaderName: form.authHeaderName || undefined,
         rememberOnDevice: form.rememberOnDevice,
         setActive: true,
       })
@@ -99,6 +166,8 @@ export function AiSettingsPage() {
           baseUrl: form.baseUrl,
           model: form.model,
           apiKey: form.apiKey,
+          authMode: form.authMode,
+          authHeaderName: form.authHeaderName || undefined,
           rememberOnDevice: form.rememberOnDevice,
           setActive: true,
         })
@@ -130,22 +199,21 @@ export function AiSettingsPage() {
     )
   }
 
-  return (
-    <div className="page">
-      <h1>AI Provider</h1>
-      <p className="lead">
-        Configure any OpenAI-compatible Chat Completions endpoint. Model names are free
-        text — listing <code>/models</code> is not required.
-      </p>
+  function applyPreset(preset: (typeof PROVIDER_PRESETS)[number]) {
+    setForm((current) => ({
+      ...current,
+      displayName: preset.displayName,
+      baseUrl: preset.baseUrl,
+      authMode: preset.authMode,
+      authHeaderName: '',
+    }))
+  }
 
-      <section className="card banner warning" role="note">
-        <strong>Browser key warning (BYOK)</strong>
-        <p className="muted" style={{ margin: '0.5rem 0 0' }}>
-          API keys entered here are available to JavaScript in this browser. Prefer
-          session-only storage. Use personal or low-risk keys — not high-value shared
-          production secrets. Keys are never included in exports.
-        </p>
-      </section>
+  const isZCodeCoding = form.baseUrl === 'https://api.z.ai/api/coding/paas/v4'
+
+  return (
+    <div className="page app-screen settings-screen">
+      <header className="screen-header"><div><p>Content generation</p><h1>AI</h1></div></header>
 
       {message ? (
         <div className={`banner ${message.kind === 'success' ? 'success' : message.kind === 'error' ? 'error' : 'info'}`}>
@@ -153,35 +221,25 @@ export function AiSettingsPage() {
         </div>
       ) : null}
 
-      <form className="card stack" onSubmit={(e) => void onSubmit(e)}>
-        <h2>{view?.profile ? 'Edit provider profile' : 'Create provider profile'}</h2>
-
-        <div className="field">
-          <label htmlFor="displayName">Display name</label>
-          <input
-            id="displayName"
-            name="displayName"
-            type="text"
-            autoComplete="off"
-            value={form.displayName}
-            onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
-            required
-          />
-        </div>
-
-        <div className="field">
-          <label htmlFor="baseUrl">Base URL</label>
-          <input
-            id="baseUrl"
-            name="baseUrl"
-            type="url"
-            autoComplete="off"
-            placeholder="https://api.openai.com/v1"
-            value={form.baseUrl}
-            onChange={(e) => setForm((f) => ({ ...f, baseUrl: e.target.value }))}
-            required
-          />
-        </div>
+      <form className="provider-setup" onSubmit={(e) => void onSubmit(e)}>
+        <section className="provider-presets" aria-label="Provider presets">
+          {PROVIDER_PRESETS.map((preset) => (
+            <button
+              type="button"
+              key={preset.id}
+              className={form.baseUrl === preset.baseUrl ? 'active' : ''}
+              onClick={() => applyPreset(preset)}
+            >
+              <strong>{preset.label}</strong>
+              <small>{preset.detail}</small>
+            </button>
+          ))}
+        </section>
+        {isZCodeCoding ? (
+          <div className="provider-inline-note">
+            ZCode Coding Plan is intended for coding workloads. For English lessons, prefer Z.ai API if your account has general API balance/resources.
+          </div>
+        ) : null}
 
         <div className="field">
           <label htmlFor="model">Model (free text)</label>
@@ -212,6 +270,76 @@ export function AiSettingsPage() {
           />
         </div>
 
+        <details className="provider-advanced">
+          <summary>Advanced endpoint</summary>
+          <div className="field">
+            <label htmlFor="displayName">Display name</label>
+            <input
+              id="displayName"
+              name="displayName"
+              type="text"
+              autoComplete="off"
+              value={form.displayName}
+              onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="baseUrl">Base URL</label>
+            <input
+              id="baseUrl"
+              name="baseUrl"
+              type="url"
+              autoComplete="off"
+              placeholder="https://api.openai.com/v1"
+              value={form.baseUrl}
+              onChange={(e) => setForm((f) => ({ ...f, baseUrl: e.target.value }))}
+              required
+            />
+          </div>
+          <div className="field">
+            <label>API key authentication</label>
+            <div className="auth-mode-row" role="group" aria-label="API key authentication">
+              <button
+                type="button"
+                className={form.authMode === 'bearer' ? 'active' : ''}
+                onClick={() => setForm((current) => ({ ...current, authMode: 'bearer', authHeaderName: '' }))}
+              >
+                Bearer
+              </button>
+              <button
+                type="button"
+                className={form.authMode === 'x-api-key' ? 'active' : ''}
+                onClick={() => setForm((current) => ({ ...current, authMode: 'x-api-key', authHeaderName: '' }))}
+              >
+                x-api-key
+              </button>
+              <button
+                type="button"
+                className={form.authMode === 'custom-header' ? 'active' : ''}
+                onClick={() => setForm((current) => ({ ...current, authMode: 'custom-header' }))}
+              >
+                Custom
+              </button>
+            </div>
+          </div>
+          {form.authMode === 'custom-header' ? (
+            <div className="field">
+              <label htmlFor="authHeaderName">Header name</label>
+              <input
+                id="authHeaderName"
+                name="authHeaderName"
+                type="text"
+                autoComplete="off"
+                placeholder="e.g. X-API-Key"
+                value={form.authHeaderName}
+                onChange={(event) => setForm((current) => ({ ...current, authHeaderName: event.target.value }))}
+                required
+              />
+            </div>
+          ) : null}
+        </details>
+
         <label className="checkbox-field" htmlFor="rememberOnDevice">
           <input
             id="rememberOnDevice"
@@ -227,7 +355,7 @@ export function AiSettingsPage() {
           </span>
         </label>
 
-        <div className="row">
+        <div className="provider-actions">
           <button type="submit" className="btn btn-primary" disabled={saving}>
             {saving ? 'Saving…' : 'Save provider'}
           </button>
@@ -242,44 +370,24 @@ export function AiSettingsPage() {
         </div>
       </form>
 
-      <section className="card stack">
-        <h2>Connection state</h2>
-        <div className="status-grid">
-          <div className="status-item">
-            <strong>Active profile</strong>
-            <span className="muted">{view?.profile?.displayName ?? 'None'}</span>
-          </div>
-          <div className="status-item">
-            <strong>Model</strong>
-            <span className="muted">{view?.profile?.model ?? '—'}</span>
-          </div>
-          <div className="status-item">
-            <strong>Credential</strong>
-            <span className="muted">
-              {view?.hasCredential
-                ? view.credentialPersistence === 'remember'
-                  ? 'Present (remembered on device)'
-                  : 'Present (session)'
-                : 'Missing'}
-            </span>
-          </div>
-          <div className="status-item">
-            <strong>Last test</strong>
-            <span className="muted">
-              {!connection
-                ? 'Not run'
-                : connection.ok
-                  ? `OK${connection.contentPreview ? `: ${connection.contentPreview}` : ''}`
-                  : `${connection.category}${connection.status ? ` (${connection.status})` : ''}`}
-            </span>
-          </div>
-        </div>
+      <section className="provider-status">
+        <div><span className={`provider-dot ${view?.hasCredential ? 'ready' : ''}`} /><strong>{view?.profile?.model ?? 'Not connected'}</strong></div>
+        <span>
+          {view?.hasCredential
+            ? `${view.profile?.authMode === 'x-api-key' ? 'x-api-key' : view.profile?.authMode === 'custom-header' ? view.profile.authHeaderName : 'Bearer'} · ${view.credentialPersistence === 'remember' ? 'saved on device' : 'this session'}`
+            : 'Add a key to generate lessons'}
+        </span>
         {connection && !connection.ok && connection.providerMessage ? (
           <p className="muted" style={{ margin: 0 }}>
             Provider message: {connection.providerMessage}
           </p>
         ) : null}
       </section>
+
+      <details className="provider-security-note">
+        <summary>About API keys</summary>
+        <p>Keys entered here are available to JavaScript in this browser and are never included in learning-data exports. Session-only storage is the default.</p>
+      </details>
     </div>
   )
 }

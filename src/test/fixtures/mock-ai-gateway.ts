@@ -65,6 +65,7 @@ export function mockActiveConfig(overrides?: Partial<ActiveAIConfig>): ActiveAIC
     baseUrl: 'https://mock.example/v1',
     model: 'mock-model',
     protocol: 'chat_completions',
+    authMode: 'bearer',
     capabilities: {
       chatCompletions: true,
       responses: false,

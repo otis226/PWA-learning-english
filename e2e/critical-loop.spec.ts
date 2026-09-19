@@ -2,21 +2,19 @@ import { expect, test, type Page } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
 
 /**
- * Critical RC1 loop with a page-level mock of Chat Completions.
- * Covers: provider config → analyze → generate → practice → reload → review → export/restore.
+ * Critical Learning Studio loop with a page-level mock of Chat Completions.
+ * Covers provider config -> AI pack -> practice -> multimodal study -> memory -> export/restore.
  */
-test.describe('RC1 critical learning loop', () => {
-  test('mock provider through practice, reload, review, export restore', async ({ page }) => {
+test.describe('Learning Studio critical loop', () => {
+  test('mock provider through practice, multimodal study, memory, export restore', async ({ page }) => {
     await installMockProvider(page)
 
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: /turn anything into something/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /^today$/i })).toBeVisible()
 
     await page.goto('/settings/ai')
-    await page.getByLabel('Display name').fill('E2E Mock Provider')
-    await page.getByLabel('Base URL').fill('https://mock.local/v1')
     await page.getByLabel(/model \(free text\)/i).fill('mock-e2e-model')
-    await page.getByLabel(/api key/i).fill('sk-e2e-test-key-not-real')
+    await page.getByLabel('API key', { exact: true }).fill('sk-e2e-test-key-not-real')
     await page.getByRole('button', { name: /save provider/i }).click()
     await expect(page.getByText(/provider profile saved/i)).toBeVisible({ timeout: 10_000 })
 
@@ -24,8 +22,7 @@ test.describe('RC1 critical learning loop', () => {
     await page.getByLabel(/paste content/i).fill(
       'Despite the heavy rain, the team continued the match. Although fans left early, players stayed focused.',
     )
-    await page.getByLabel(/what do you want to learn/i).selectOption('mixed')
-    await page.getByRole('button', { name: /analyze with ai/i }).click()
+    await page.getByRole('button', { name: /generate lesson/i }).click()
 
     await expect(page.getByText(/concepts/i).first()).toBeVisible({ timeout: 20_000 })
 
@@ -57,8 +54,24 @@ test.describe('RC1 critical learning loop', () => {
       await expect(page.getByText(/explanation/i)).toBeVisible()
     }
 
+    await page.goto('/study')
+    await expect(page.getByRole('heading', { name: /^study$/i })).toBeVisible()
+    await page.getByRole('link', { name: /listening/i }).click()
+    await expect(page.getByRole('heading', { name: /^listening$/i })).toBeVisible()
+    await page.getByLabel(/type what you hear/i).fill('Despite the heavy rain')
+    await page.getByRole('button', { name: /check dictation/i }).click()
+    await expect(page.getByText(/100% match/i)).toBeVisible()
+
+    await page.goto('/study')
+    await page.getByRole('link', { name: /pronunciation/i }).click()
+    await expect(page.getByRole('heading', { name: /^pronunciation$/i })).toBeVisible()
+
+    await page.goto('/memory')
+    await expect(page.getByRole('heading', { name: /^memory$/i })).toBeVisible()
+    await expect(page.getByLabel('Listening attempts')).toContainText('1')
+
     await page.goto('/')
-    await expect(page.getByRole('link', { name: /^open$/i }).first()).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByRole('link', { name: /e2e connectors/i }).first()).toBeVisible({ timeout: 10_000 })
 
     await page.goto('/review')
     await expect(page.getByRole('heading', { name: /due review/i })).toBeVisible()
@@ -80,11 +93,12 @@ test.describe('RC1 critical learning loop', () => {
     const envelope = JSON.parse(jsonText) as {
       format: string
       schemaVersion: number
-      data: { learningPacks: unknown[] }
+      data: { learningPacks: unknown[]; skillAttempts: unknown[] }
     }
     expect(envelope.format).toBe('pwa-learning-english-export')
-    expect(envelope.schemaVersion).toBe(2)
+    expect(envelope.schemaVersion).toBe(4)
     expect(envelope.data.learningPacks.length).toBeGreaterThan(0)
+    expect(envelope.data.skillAttempts.length).toBeGreaterThan(0)
 
     await page.setInputFiles('#importFile', {
       name: 'restore.json',
@@ -97,7 +111,7 @@ test.describe('RC1 critical learning loop', () => {
     await expect(page.getByText(/restored/i)).toBeVisible({ timeout: 15_000 })
 
     await page.goto('/')
-    await expect(page.getByRole('link', { name: /open/i }).first()).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('link', { name: /e2e connectors/i }).first()).toBeVisible({ timeout: 15_000 })
   })
 })
 

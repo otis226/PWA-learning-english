@@ -77,6 +77,8 @@ export class ProviderSettingsService {
       baseUrl: input.baseUrl,
       model: input.model,
       protocol: input.protocol ?? 'chat_completions',
+      authMode: input.authMode ?? 'bearer',
+      authHeaderName: input.authHeaderName,
       capabilityOverrides: input.capabilityOverrides,
     })
 
@@ -88,6 +90,8 @@ export class ProviderSettingsService {
       baseUrl: parsed.baseUrl.replace(/\/+$/, ''),
       model: parsed.model,
       protocol: parsed.protocol,
+      authMode: parsed.authMode,
+      authHeaderName: parsed.authMode === 'custom-header' ? parsed.authHeaderName : undefined,
       capabilityOverrides: parsed.capabilityOverrides,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
@@ -150,6 +154,8 @@ export class ProviderSettingsService {
       baseUrl: profile.baseUrl,
       model: profile.model,
       protocol: profile.protocol,
+      authMode: profile.authMode ?? 'bearer',
+      authHeaderName: profile.authHeaderName,
       capabilities: mergeCapabilities(profile.capabilityOverrides),
       hasCredential,
       credentialPersistence,

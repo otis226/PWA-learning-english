@@ -1,4 +1,5 @@
 import type { CredentialStore } from '../../credentials/types'
+import type { ProviderAuthMode } from '../../../db/schema/types'
 import {
   AIRequestError,
   categorizeHttpStatus,
@@ -38,6 +39,8 @@ export type OpenAICompatibleChatClientOptions = {
   baseUrl: string
   model: string
   providerProfileId: string
+  authMode?: ProviderAuthMode
+  authHeaderName?: string
   credentialStore: CredentialStore
   fetchImpl?: typeof fetch
   /**
@@ -53,6 +56,8 @@ export class OpenAICompatibleChatClient {
   private readonly endpoint: string
   private readonly model: string
   private readonly providerProfileId: string
+  private readonly authMode: ProviderAuthMode
+  private readonly authHeaderName?: string
   private readonly credentialStore: CredentialStore
   private readonly fetchImpl: typeof fetch
   private readonly timeoutMs: number | null
@@ -62,6 +67,8 @@ export class OpenAICompatibleChatClient {
     this.endpoint = normalizeChatCompletionsUrl(options.baseUrl)
     this.model = options.model
     this.providerProfileId = options.providerProfileId
+    this.authMode = options.authMode ?? 'bearer'
+    this.authHeaderName = options.authHeaderName
     this.credentialStore = options.credentialStore
     this.fetchImpl = options.fetchImpl ?? fetch.bind(globalThis)
     this.timeoutMs =
@@ -134,12 +141,27 @@ export class OpenAICompatibleChatClient {
         body.response_format = request.response_format
       }
 
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+      if (this.authMode === 'bearer') {
+        headers.Authorization = `Bearer ${credential.apiKey}`
+      } else if (this.authMode === 'x-api-key') {
+        headers['x-api-key'] = credential.apiKey
+      } else {
+        const headerName = this.authHeaderName?.trim()
+        if (!headerName) {
+          throw new AIRequestError(
+            'provider_error',
+            'Custom API-key header is missing from this provider profile.',
+          )
+        }
+        headers[headerName] = credential.apiKey
+      }
+
       const response = await this.fetchImpl(this.endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${credential.apiKey}`,
-        },
+        headers,
         body: JSON.stringify(body),
         signal: controller.signal,
       })

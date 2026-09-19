@@ -91,6 +91,24 @@ describe('ProviderSettingsService', () => {
     expect(cred?.persistence).toBe('remember')
   })
 
+  it('persists non-secret authentication metadata separately from the API key', async () => {
+    const profile = await service.saveProvider({
+      displayName: 'Header Provider',
+      baseUrl: 'https://api.example.com/v1',
+      model: 'm',
+      authMode: 'custom-header',
+      authHeaderName: 'X-Provider-Key',
+      apiKey: 'top-secret',
+      rememberOnDevice: false,
+    })
+
+    expect(await db.providerProfiles.get(profile.id)).toMatchObject({
+      authMode: 'custom-header',
+      authHeaderName: 'X-Provider-Key',
+    })
+    expect((await credentials.get(profile.id))?.apiKey).toBe('top-secret')
+  })
+
   it('preserves existing key when switching session → remember with blank apiKey', async () => {
     const profile = await service.saveProvider({
       displayName: 'Switch',

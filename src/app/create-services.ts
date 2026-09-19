@@ -13,12 +13,14 @@ import {
   MistakeSignalRepository,
   ReviewCardRepository,
   ReviewLogRepository,
+  SkillAttemptRepository,
   SourceRepository,
   StudySessionRepository,
 } from '../db/repositories/learning-repositories'
 import { ProviderSettingsService } from '../features/settings/provider-settings-service'
 import { AnalyzeSourceService } from '../learning/analysis/analyze-source-service'
 import { DashboardService } from '../learning/dashboard/dashboard-service'
+import { MemoryService } from '../learning/memory/memory-service'
 import { GenerateExercisesService } from '../learning/exercises/generate-exercises-service'
 import { PracticeService } from '../learning/practice/practice-service'
 import { ReviewService } from '../learning/review/review-service'
@@ -39,6 +41,8 @@ export type AppServices = {
   practice: PracticeService
   review: ReviewService
   dashboard: DashboardService
+  memory: MemoryService
+  skillAttempts: SkillAttemptRepository
   packs: LearningPackRepository
   sources: SourceRepository
   exercises: ExerciseRepository
@@ -71,6 +75,7 @@ export function createAppServices(options?: {
   const mistakes = new MistakeSignalRepository(db)
   const reviewCards = new ReviewCardRepository(db)
   const reviewLogs = new ReviewLogRepository(db)
+  const skillAttempts = new SkillAttemptRepository(db)
 
   const providerSettings = new ProviderSettingsService(
     profiles,
@@ -125,6 +130,7 @@ export function createAppServices(options?: {
   )
 
   const dashboard = new DashboardService(packs, sessions, attempts, review)
+  const memory = new MemoryService(concepts, mastery, reviewCards, skillAttempts)
 
   return {
     db,
@@ -138,6 +144,8 @@ export function createAppServices(options?: {
     practice,
     review,
     dashboard,
+    memory,
+    skillAttempts,
     packs,
     sources,
     exercises,

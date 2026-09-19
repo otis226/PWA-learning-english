@@ -299,3 +299,99 @@ RC1.1 correctness/compatibility locks:
 2. **No silent first-concept fallback.** Every generated exercise must resolve each `targetConceptLabel` to a pack concept. Unresolved/invalid mappings are rejected so mastery/FSRS cannot update an unrelated concept.
 3. **Reading evidence is domain-semantic.** Reading/source-comprehension exercises require valid source evidence even when the model omits or sets `groundedInSource=false`. The model flag is not the enforcement mechanism.
 4. **No automatic `temperature`.** Structured-output / Chat Completions requests must not inject optional generation parameters such as `temperature` unless a caller intentionally configures them. Extends D-022 beyond Test Connection.
+
+## D-027 — Multimodal skills extend memory; they do not replace FSRS
+
+**Status:** Accepted
+**Date:** 2026-09-19
+
+Listening, pronunciation and reading attempts are durable learner evidence and are stored in IndexedDB as append-friendly `skillAttempts`.
+
+The ownership boundary is:
+
+```text
+concept recall / review scheduling -> attempts + mastery + FSRS
+listening / pronunciation / reading practice history -> skillAttempts
+AI provider -> content generation only
+```
+
+Do not make AI chat history, browser speech state, or transient component state the learner memory.
+
+## D-028 — Browser speech is progressive enhancement
+
+**Status:** Accepted
+**Date:** 2026-09-19
+
+Use browser speech synthesis for English playback when available. Use `SpeechRecognition` / `webkitSpeechRecognition` only as an optional pronunciation/shadowing aid.
+
+A recognition result may be compared with the target transcript for practical feedback, but that percentage must not be described as accent quality, IPA accuracy, phoneme accuracy, or a clinical/linguistic pronunciation score.
+
+Core study flows must remain usable when recognition is unavailable. Voice quality and recognition availability are browser/OS capabilities, not product guarantees.
+
+## D-029 — Export schema v3 includes multimodal skill history
+
+**Status:** Accepted
+**Date:** 2026-09-19
+
+Export schema v3 adds `skillAttempts` so listening, pronunciation and reading history survive backup/restore. Credentials remain excluded.
+
+Legacy v1/v2 exports are migrated by filling the new collection with an empty array; legacy IndexedDB databases migrate through Dexie v3 without destroying prior learning state.
+
+## D-030 — The product shell is app-first, not website-first
+
+**Status:** Accepted
+**Date:** 2026-09-19
+
+The installed PWA should feel like a daily-use mobile application rather than a responsive marketing/dashboard website.
+
+The default interaction model is:
+
+```text
+compact top app bar
+persistent bottom tab navigation
+screen-sized task flows
+short action/list rows
+focused study sessions
+mobile-width application canvas that expands conservatively on desktop
+```
+
+Avoid large marketing hero copy, desktop-first navigation bars, wide dashboard grids, and repeated explanatory cards on primary learning screens. Desktop is a wider presentation of the same application shell, not a separate website layout.
+
+## D-031 — Primary learning flows minimize input and scrolling
+
+**Status:** Accepted
+**Date:** 2026-09-19
+
+Daily-use learning screens should not behave like configuration forms.
+
+Default UX rules:
+
+- one primary action per screen;
+- infer or default title, learning goal, provider metadata, and other secondary fields where safe;
+- use presets/segmented choices before free-form configuration;
+- put secondary controls behind progressive disclosure such as `Advanced` / `Learning focus`;
+- keep the primary CTA visible without requiring scroll when practical;
+- hide global navigation during focused create/practice sessions when the screen provides its own close/back control;
+- keep long configuration forms limited to infrequent settings surfaces.
+
+The Create flow therefore defaults to preset/topic/text/words + one composer + Generate; AI provider setup defaults to Model + API key, with endpoint metadata under Advanced.
+
+## D-032 — AI provider profiles separate protocol, endpoint, and authentication
+
+**Status:** Accepted
+**Date:** 2026-09-19
+
+The content-generation layer remains OpenAI Chat Completions compatible, but provider configuration is not tied to one vendor.
+
+Provider profiles store only non-secret connection metadata:
+
+- provider display name and Base URL;
+- model ID;
+- API-key auth mode: bearer, x-api-key, or custom-header;
+- custom header name when required.
+
+The credential value remains in the separate credential store and is never written into profile rows or exports.
+
+The settings UI provides verified convenience presets for OpenAI, ZCode/Z.ai, DeepSeek, OpenRouter and Groq while preserving a custom Base URL path. ZCode's Coding Plan endpoint is labeled as coding-only; general English-learning generation should use a general-purpose Z.ai/OpenAI-compatible API entitlement instead.
+
+Export schema v4 adds the non-secret auth metadata so backup/restore preserves provider behavior. Legacy v1-v3 exports migrate forward with Bearer auth as the compatibility default.

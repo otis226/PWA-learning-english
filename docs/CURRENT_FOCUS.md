@@ -1,58 +1,62 @@
 # Current Focus
 
-Last updated: 2026-08-17
+Last updated: 2026-09-19
 
 ## Active release target
 
-**RC1.1 — Stabilization of the durable personal-use MVP**
+**Learning Studio R2 — multimodal personal English learning**
 
-Roadmap source: `docs/ROADMAP.md`.
+The user explicitly activated the broader product scope after RC1.1: flashcards, quiz, pronunciation, listening, reading, long-term memory, and AI-generated content through user-configured APIs.
 
-Current internal milestone: **RC1.1 correctness/compatibility fixes**. Do **not** start M6.
+## Product contract
 
-## Execution policy for this release run
+- Keep the app **local-first** and installable as a PWA.
+- Reuse the existing learning core: attempts, mastery, mistakes and FSRS remain the concept-memory authority.
+- Flashcards and quiz are focused launch modes over the existing practice engine, not parallel scoring systems.
+- Listening, pronunciation and reading write durable `skillAttempts` history to IndexedDB.
+- Speech synthesis/recognition are progressive browser capabilities. Pronunciation transcript similarity is practical feedback, **not** a phonetic/accent-quality score.
+- AI is optional content generation through the existing OpenAI-compatible adapter. AI never owns review scheduling or durable learner memory.
+- Figma is not required for this product workflow; maintained code is the implementation authority unless a later accepted visual reference says otherwise.
 
-Stay inside the four RC1.1 findings. Do not add PDF/image ingestion, Google Drive, UX redesign, or unrelated polish.
+## R2 implemented candidate
 
-Stop only when the RC1.1 exit gate below passes, or a genuine blocker prevents safe progress.
+- [x] Today dashboard with daily review/study entry points
+- [x] Study Studio with Flashcard and Quiz launchers
+- [x] Listening dictation with speech playback and durable score history
+- [x] Pronunciation/shadowing with playback + optional browser speech recognition
+- [x] Reading Room with read-aloud, focus mode and completion history
+- [x] Memory Center combining FSRS/mastery with multimodal skill history
+- [x] AI lesson presets layered on the existing BYOK/OpenAI-compatible generation flow
+- [x] IndexedDB v3 migration for `skillAttempts`
+- [x] export/import schema v4 with multimodal history + non-secret provider auth metadata, no credentials
+- [x] route code-splitting so the production entry chunk remains below the Vite 500 kB warning threshold
+- [x] app-first shell: compact app bar, persistent bottom tabs, daily-plan Today screen, focused Study/session screens
+- [x] low-input UX pass: single-composer Create, compact Memory, progressive AI settings, immersive sessions, fixed primary Create CTA
 
-## Current repository state
+## Exit gate
 
-RC1 (M1–M5) is on `main`. This run is `fix/rc1-stabilization`.
-
-RC1.1 locks:
-
-- Pack detail and **new** practice sessions load `LearningPack.exerciseIds` only. Historical exercises/attempts stay in IndexedDB.
-- Generated exercises must resolve `targetConceptLabel`s explicitly. No silent fallback to the first pack concept.
-- Reading/source-comprehension evidence is required by domain semantics, not only when the model sets `groundedInSource=true`.
-- Structured-output requests do not inject `temperature` unless a caller configures it (extends D-022).
-
-## RC1.1 exit gate
-
-1. [x] Regenerated pack practice uses only current `exerciseIds`
-2. [x] Unresolved target concepts are rejected; mastery/FSRS cannot update a fallback concept
-3. [x] Reading exercises without the model grounding flag still require valid evidence
-4. [x] Structured-output request body has no `temperature` unless configured
-5. [x] `pnpm verify`
-6. [x] `pnpm test:e2e`
-7. [x] Docs accurate (`DECISIONS` D-026, this file)
-
-## Verification
-
-```bash
-pnpm verify
-pnpm test:e2e   # after: pnpm exec playwright install chromium
-```
+1. [x] `pnpm verify` — lint, typecheck, 94 tests, production PWA build
+2. [x] `pnpm test:e2e` — AI pack -> practice -> listening -> pronunciation surface -> Memory Center -> export/clear/restore
+3. [x] production manifest + service worker generated
+4. [x] legacy v1 database migration reaches v3 without data loss
+5. [x] legacy export v1/v2/v3 payloads migrate into export schema v4
+6. [x] current docs and decisions describe R2 truth
 
 ## Current next action
 
-Open/land the RC1.1 PR to `main`. Do not start M6.
+Product/manual review of the R2 candidate, then land it according to repository merge policy.
 
-## Blockers
+## Known limitations
 
-None.
+- Browser speech recognition availability varies by browser/OS and may use browser/vendor services; the UI must retain a playback-only fallback.
+- Transcript similarity is not IPA/phoneme assessment.
+- Speech synthesis voice quality depends on installed/browser voices.
+- Multi-device sync and trusted server-side secret storage remain deferred.
 
 ## Later / discovered
 
-- M6 rich local-file ingestion (not this run)
-- M7 Google Drive backup
+- richer pronunciation feedback only if a trustworthy phoneme-level engine is selected;
+- personalized daily lesson generation from due + weak concepts (existing M8 direction);
+- rich local-file ingestion (M6);
+- optional Google Drive backup (M7);
+- explicit multi-device sync only after conflict semantics are designed.
